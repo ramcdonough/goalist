@@ -1,0 +1,108 @@
+/* Basic editor styles */
+.tiptap {
+  > * + * {
+    margin-top: 0.75em;
+  }
+
+  /* List styles */
+  ul, 
+  ol {
+    padding: 0 1rem;
+    margin: 0.5rem 1rem 0.5rem 0.4rem;
+    
+    li p {
+      margin: 0.25em 0;
+    }
+  }
+
+  /* Heading styles */
+  h1, 
+  h2, 
+  h3, 
+  h4, 
+  h5, 
+  h6 {
+    line-height: 1.1;
+    margin: 1rem 0 0.5rem;
+    text-wrap: pretty;
+  }
+
+  h1 { font-size: 1.4rem; }
+  h2 { font-size: 1.2rem; }
+  h3 { font-size: 1.1rem; }
+  h4, h5, h6 { font-size: 1rem; }
+
+  /* Code and preformatted text styles */
+  code {
+    background-color: rgba(#616161, 0.1);
+    border-radius: 0.25rem;
+    color: currentColor;
+    font-size: 0.875em;
+    padding: 0.25em 0.3em;
+  }
+
+  pre {
+    background: rgba(#616161, 0.1);
+    border-radius: 0.5rem;
+    color: currentColor;
+    font-family: monospace;
+    margin: 0.75rem 0;
+    padding: 0.75rem 1rem;
+
+    code {
+      background: none;
+      color: inherit;
+      font-size: 0.8rem;
+      padding: 0;
+    }
+  }
+
+  blockquote {
+    border-left: 3px solid rgba(#616161, 0.3);
+    margin: 1rem 0;
+    padding-left: 1rem;
+    font-style: italic;
+  }
+
+  hr {
+    border: none;
+    border-top: 2px solid rgba(#616161, 0.2);
+    margin: 1rem 0;
+  }
+}
+
+.dropdown-menu {
+  position: absolute; /* Position it relative to the button */
+  background-color: white; /* Background color */
+  border: 1px solid #ccc; /* Border */
+  border-radius: 4px; /* Rounded corners */
+  padding: 10px; /* Padding */
+  z-index: 1000; /* Ensure it appears above other elements */
+}
+  
+.ellipsis-button {
+  background: none; /* No background */
+  border: none; /* No border */
+  cursor: pointer; /* Pointer cursor */
+  font-size: 16px; /* Font size */
+}
+
+.control-group {
+  @apply border-b border-gray-200 dark:border-gray-700 p-2;
+
+  .button-group {
+    @apply flex flex-wrap gap-1;
+
+    button {
+      @apply px-2 py-1 text-sm rounded-md bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors;
+
+      &.is-active {
+        @apply bg-primary-light dark:bg-primary-dark text-white;
+      }
+
+      &:disabled {
+        @apply opacity-50 cursor-not-allowed;
+      }
+    }
+  }
+}
