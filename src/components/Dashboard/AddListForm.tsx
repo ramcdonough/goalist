@@ -42,14 +42,14 @@ const AddListForm: React.FC<AddListFormProps> = ({ onError, columns }) => {
             }
           }}
           placeholder="Add new list..."
-          className="input input-bordered flex-1 max-w-xs"
+          className="input input-bordered bg-surface-light dark:bg-surface text-text-light dark:text-text-dark flex-1 max-w-xs focus:outline-none"
         />
       )}
       <button
         onClick={() => setInputVisible(!isInputVisible)}
-        className="btn bg-primary-light dark:bg-primary-dark text-white border-none rounded-full"
+        className="btn btn-circle bg-primary-light dark:bg-primary-dark text-white border-none hover:bg-primary dark:hover:bg-primary-dark/80"
       >
-        <Plus size={20} strokeWidth={3}/>
+        <Plus size={25} strokeWidth={2}/>
       </button>
     </div>
   );

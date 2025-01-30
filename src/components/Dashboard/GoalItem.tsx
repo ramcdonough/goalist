@@ -2,7 +2,7 @@ import { Trash, Star, GripVertical } from "lucide-react";
 import { Goal, useGoals } from "../../context/GoalContext";
 import GoalModal from "./GoalModal";
 import ConfirmationModal from './ConfirmationModal';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 interface GoalItemProps {
   goal: Goal;
@@ -12,6 +12,18 @@ interface GoalItemProps {
 const GoalItem: React.FC<GoalItemProps> = ({ goal, handleCheckboxChange }) => {
   const { deleteGoal } = useGoals();
   const [isDeleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [isChecked, setIsChecked] = useState(!!goal.completedAt);
+
+  // Update local state when goal.completedAt changes
+  useEffect(() => {
+    setIsChecked(!!goal.completedAt);
+  }, [goal.completedAt]);
+
+  const handleCheckboxClick = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newCheckedState = e.target.checked;
+    setIsChecked(newCheckedState); // Update local state immediately
+    handleCheckboxChange(goal.id, newCheckedState); // Trigger the actual update
+  };
 
   const handleDeleteGoal = () => {
     deleteGoal(goal.id);
@@ -33,20 +45,20 @@ const GoalItem: React.FC<GoalItemProps> = ({ goal, handleCheckboxChange }) => {
         </div>
         <input
           type="checkbox"
-          checked={!!goal.completedAt}
-          onChange={(e) => handleCheckboxChange(goal.id, e.target.checked)}
+          checked={isChecked}
+          onChange={handleCheckboxClick}
           className="checkbox checkbox-sm"
         />
         <div className="flex-1 flex items-center gap-2">
           <button
             onClick={openModal}
-            className={`flex-1 text-left ${goal.completedAt ? 'line-through text-gray-400 dark:text-gray-600' : ''}`}
+            className={`flex-1 text-left text-text-light dark:text-text-dark ${isChecked ? 'line-through' : ''}`}
           >
             {goal.title}
           </button>
-          {goal.description && (
+          {/* {goal.description && (
             <Star size={16} className="text-yellow-500" />
-          )}
+          )} */}
         </div>
         <button
           onClick={() => setDeleteModalOpen(true)}

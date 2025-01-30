@@ -265,7 +265,7 @@ const Dashboard: React.FC = () => {
   return (
     <div className="min-h-screen p-4 md:p-8 md:pt-10">
       <div className="max-w-6xl mx-auto space-y-6">
-        <div className="flex justify-between items-center md:pr-12">
+        <div className="flex flex-col md:flex-row justify-between items-center md:pr-12">
           <h1 className="text-2xl md:text-2xl text-left md:text-left font-bold relative md:ml-12">
             <span
               className="relative z-10 bg-clip-text text-transparent bg-gradient-to-r dark:from-red-400 dark:to-red-500 from-red-500 to-red-700"
@@ -298,15 +298,6 @@ const Dashboard: React.FC = () => {
             columns={columns}
           />
         </DragDropContext>
-
-        {process.env.NODE_ENV === 'development' && (
-          <div className="mt-8 p-4 bg-gray-100 dark:bg-gray-800 rounded-lg md:mx-12">
-            <h3 className="font-bold mb-2">Debug Info:</h3>
-            <pre className="text-sm overflow-auto">
-              {JSON.stringify({ goalLists, columns }, null, 2)}
-            </pre>
-          </div>
-        )}
       </div>
     </div>
   );

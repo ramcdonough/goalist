@@ -211,21 +211,34 @@ export const GoalProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const toggleComplete = async (id: string, isComplete: boolean) => {
     const completedAt = isComplete ? new Date().toISOString() : null;
     
-    const { error } = await supabase
-      .from('goals')
-      .update({ completed_at: completedAt })
-      .eq('id', id);
-
-    if (error) {
-      console.error('Error toggling goal completion:', error);
-      throw error;
-    }
-
+    // Update local state immediately for optimistic update
     const newGoals = goals.map(goal => 
       goal.id === id ? { ...goal, completedAt } : goal
     );
     setGoals(newGoals);
     localStorage.setItem(GOALS_CACHE_KEY, JSON.stringify(newGoals));
+
+    try {
+      // Then update the database
+      const { error } = await supabase
+        .from('goals')
+        .update({ completed_at: completedAt })
+        .eq('id', id);
+
+      if (error) {
+        // If there's an error, revert the optimistic update
+        console.error('Error toggling goal completion:', error);
+        const revertedGoals = goals.map(goal => 
+          goal.id === id ? { ...goal } : goal
+        );
+        setGoals(revertedGoals);
+        localStorage.setItem(GOALS_CACHE_KEY, JSON.stringify(revertedGoals));
+        throw error;
+      }
+    } catch (error) {
+      console.error('Error in toggleComplete:', error);
+      throw error;
+    }
   };
 
   const clearGoals = () => {

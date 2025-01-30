@@ -19,17 +19,17 @@ module.exports = {
         background: {
           light: '#fcf1e1',
           DEFAULT: '#1e293b',
-          dark: '#15161a'
+          dark: '#0f172a'
         },
         surface: {
           light: '#ffffff',
           DEFAULT: '#334155',
-          dark: '#1c1d24'
+          dark: '#1e293b'
         },
         text: {
           light: '#1e293b',
           DEFAULT: '#f8fafc',
-          dark: '#e2e8f0'
+          dark: '#f1f5f9'
         },
         accent: {
           light: '#3b82f6',

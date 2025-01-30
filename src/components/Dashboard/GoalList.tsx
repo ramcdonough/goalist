@@ -77,9 +77,9 @@ const GoalList: React.FC<GoalListProps> = ({ goalListId, title, goals, index }) 
           {...provided.draggableProps}
           className="goal-list bg-surface-light dark:bg-surface-dark rounded-lg shadow-lg p-6 border border-gray-200 dark:border-gray-800"
         >
-          <div className="flex items-center justify-between mb-4" {...provided.dragHandleProps}>
+          <div className="flex items-center justify-between mb-4 px-1" {...provided.dragHandleProps}>
             {isEditing ? (
-              <div className="flex items-center gap-2 flex-1">
+              <div className="flex items-center gap-2 flex-1 text-text-light dark:text-text-dark">
                 <input
                   type="text"
                   value={listTitle}
@@ -89,7 +89,14 @@ const GoalList: React.FC<GoalListProps> = ({ goalListId, title, goals, index }) 
                       handleUpdateTitle();
                     }
                   }}
-                  className="input input-sm flex-1 bg-surface-light dark:bg-surface rounded-lg"
+                  onBlur={() => {
+                    if (listTitle.trim() === '') {
+                      setListTitle(title);
+                    } else {
+                      handleUpdateTitle();
+                    }
+                  }}
+                  className="input input-sm flex-1 bg-transparent border-none text-xl font-semibold"
                   autoFocus
                 />
                 <button
@@ -101,7 +108,7 @@ const GoalList: React.FC<GoalListProps> = ({ goalListId, title, goals, index }) 
               </div>
             ) : (
               <h2 className="text-xl font-semibold text-text-light dark:text-text-dark flex items-center">
-                <span className="mr-2">{title}</span>
+                <span className="mr-2" onClick={() => setIsEditing(true)}>{title}</span>
                 <span className="text-sm font-normal text-text-light/60 dark:text-text-dark/60">
                   ({goals.length})
                 </span>

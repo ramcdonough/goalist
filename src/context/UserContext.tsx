@@ -14,7 +14,7 @@ const UserContext = createContext<UserContextType | undefined>(undefined);
 export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const { user } = useAuth(); // Get user from AuthContext
   const [soundEnabled, setSoundEnabled] = useState(true);
-  const [darkModeEnabled, setDarkModeEnabled] = useState(true);
+  const [darkModeEnabled, setDarkModeEnabled] = useState(false);
 
   const toggleSound = () => {
     setSoundEnabled(prev => !prev);

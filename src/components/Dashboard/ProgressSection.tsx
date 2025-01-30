@@ -33,7 +33,7 @@ const ProgressSection: React.FC<ProgressSectionProps> = ({
         checked={isProgressOpen} 
         onChange={toggleProgress}
       />
-      <div className="collapse-title text-xl font-bold flex items-center justify-between text-text-dark dark:text-text-light">
+      <div className="collapse-title text-base font-bold flex items-center justify-between text-text-dark dark:text-text-light py-1 h-8">
         <span>Progress</span>
         {isProgressOpen ? <ChevronDown size={20} strokeWidth={3}/> : <ChevronUp size={20} strokeWidth={3}/>}
       </div>
