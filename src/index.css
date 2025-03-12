@@ -2,6 +2,22 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Theme transition handling */
+:root {
+  --theme-transition-duration: 200ms;
+}
+
+.disable-transitions * {
+  transition: none !important;
+}
+
+/* Apply transitions only after initialization */
+:not(.disable-transitions) * {
+  transition: background-color var(--theme-transition-duration) ease-in-out,
+              border-color var(--theme-transition-duration) ease-in-out,
+              color var(--theme-transition-duration) ease-in-out;
+}
+
 body {
   margin: 0;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',

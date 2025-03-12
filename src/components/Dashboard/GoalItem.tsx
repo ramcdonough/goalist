@@ -10,7 +10,7 @@ interface GoalItemProps {
 }
 
 const GoalItem: React.FC<GoalItemProps> = ({ goal, handleCheckboxChange }) => {
-  const { deleteGoal } = useGoals();
+  const { deleteGoal, updateGoal } = useGoals();
   const [isDeleteModalOpen, setDeleteModalOpen] = useState(false);
   const [isChecked, setIsChecked] = useState(!!goal.completedAt);
 
@@ -30,6 +30,14 @@ const GoalItem: React.FC<GoalItemProps> = ({ goal, handleCheckboxChange }) => {
     setDeleteModalOpen(false);
   };
 
+  const toggleFocus = async () => {
+    try {
+      await updateGoal(goal.id, { isFocused: !goal.isFocused   });
+    } catch (error) {
+      console.error('Error toggling focus:', error);
+    }
+  };
+
   const openModal = () => {
     const modal = document.getElementById(`goal-modal-${goal.id}`) as HTMLDialogElement;
     if (modal) {
@@ -47,7 +55,7 @@ const GoalItem: React.FC<GoalItemProps> = ({ goal, handleCheckboxChange }) => {
           type="checkbox"
           checked={isChecked}
           onChange={handleCheckboxClick}
-          className="checkbox checkbox-sm"
+          className="checkbox checkbox-sm checkbox-primary"
         />
         <div className="flex-1 flex items-center gap-2">
           <button
@@ -56,16 +64,22 @@ const GoalItem: React.FC<GoalItemProps> = ({ goal, handleCheckboxChange }) => {
           >
             {goal.title}
           </button>
-          {/* {goal.description && (
-            <Star size={16} className="text-yellow-500" />
-          )} */}
         </div>
-        <button
-          onClick={() => setDeleteModalOpen(true)}
-          className="btn btn-ghost btn-xs text-red-500"
-        >
-          <Trash size={16} />
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={toggleFocus}
+            className={`btn btn-ghost btn-xs ${goal.isFocused ? 'text-yellow-500' : 'text-gray-400 hover:text-yellow-500'}`}
+            title={goal.isFocused ? "Remove from Focus List" : "Add to Focus List"}
+          >
+            <Star size={16} className={goal.isFocused ? 'fill-current' : ''} />
+          </button>
+          <button
+            onClick={() => setDeleteModalOpen(true)}
+            className="btn btn-ghost btn-xs text-red-500"
+          >
+            <Trash size={16} />
+          </button>
+        </div>
       </div>
 
       <GoalModal goal={goal} />

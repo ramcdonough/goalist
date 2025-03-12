@@ -25,7 +25,7 @@ const convertToCamelCase = (obj: { [key: string]: any }): { [key: string]: any }
   return camelCaseObj;
 };
 
-type Goal = {
+export type Goal = {
   id: string;
   title: string;
   description: string | null;
@@ -37,7 +37,8 @@ type Goal = {
   createdAt: string;
   updatedAt: string;
   userId: string;
-  goal_order: number;
+  goalOrder: number;
+  isFocused: boolean;
 };
 
 // Type for database operations
@@ -88,7 +89,6 @@ export const GoalProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         console.error('Error fetching goals:', error);
         return;
       }
-
       if (data) {
         const formattedGoals: Goal[] = data.map(goal => ({
           id: goal.id,
@@ -102,8 +102,10 @@ export const GoalProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           createdAt: goal.created_at,
           updatedAt: goal.updated_at,
           userId: goal.user_id,
-          goal_order: goal.goal_order || 0
+          goalOrder: goal.goal_order || 0,
+          isFocused: goal.is_focused
         }));
+
         setGoals(formattedGoals);
         localStorage.setItem(GOALS_CACHE_KEY, JSON.stringify(formattedGoals));
       }
@@ -128,7 +130,7 @@ export const GoalProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         carry_over: goal.carryOver,
         completed_at: goal.completedAt,
         user_id: user.id,
-        goal_order: goal.goal_order
+        goal_order: goal.goalOrder
       };
 
       const { data, error } = await supabase
@@ -158,7 +160,8 @@ export const GoalProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         createdAt: data.created_at,
         updatedAt: data.updated_at,
         userId: data.user_id,
-        goal_order: data.goal_order
+        goalOrder: data.goal_order,
+        isFocused: data.is_focused
       };
 
       const updatedGoals = [...goals, newGoal];
@@ -268,5 +271,3 @@ export const useGoals = (): GoalContextType => {
   }
   return context;
 };
-
-export { type Goal };

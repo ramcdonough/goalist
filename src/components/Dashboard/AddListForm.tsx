@@ -1,26 +1,37 @@
 import React, { useState } from 'react';
 import { Plus } from 'lucide-react';
 import { useGoalLists } from '../../context/GoalListContext';
+import { useUserSettings } from '../../context/UserContext';
+import { ColumnData } from './DraggableColumns';
 
 interface AddListFormProps {
   onError: (error: string) => void;
-  columns: {
-    'column-1': any[];
-    'column-2': any[];
-  };
+  columns: ColumnData;
 }
 
 const AddListForm: React.FC<AddListFormProps> = ({ onError, columns }) => {
   const [newListTitle, setNewListTitle] = useState('');
   const [isInputVisible, setInputVisible] = useState(false);
   const { addGoalList } = useGoalLists();
+  const { columnPreference } = useUserSettings();
 
   const handleAddList = async () => {
     if (newListTitle.trim() === '') return;
     
     try {
-      const columnNumber = columns['column-1'].length <= columns['column-2'].length ? 1 : 2;
-      await addGoalList({ title: newListTitle, column_number: columnNumber });
+      // Find the column with the least number of lists
+      let minColumn = 1;
+      let minCount = columns['column-1']?.length || 0;
+
+      for (let i = 2; i <= columnPreference; i++) {
+        const count = columns[`column-${i}`]?.length || 0;
+        if (count < minCount) {
+          minCount = count;
+          minColumn = i;
+        }
+      }
+
+      await addGoalList({ title: newListTitle, column_number: minColumn });
       setNewListTitle('');
       setInputVisible(false);
     } catch (err) {
@@ -47,9 +58,9 @@ const AddListForm: React.FC<AddListFormProps> = ({ onError, columns }) => {
       )}
       <button
         onClick={() => setInputVisible(!isInputVisible)}
-        className="btn btn-circle bg-primary-light dark:bg-primary-dark text-white border-none hover:bg-primary dark:hover:bg-primary-dark/80"
+        className="btn bg-primary-light dark:bg-primary-dark text-white border-none hover:bg-primary dark:hover:bg-primary-dark/80"
       >
-        <Plus size={25} strokeWidth={2}/>
+        <Plus size={15} strokeWidth={3}/> Add List
       </button>
     </div>
   );

@@ -1,75 +1,55 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { useGoals } from '../../context/GoalContext';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import { useGoals, type Goal } from '../../context/GoalContext';
 import { useGoalLists, type GoalList as GoalListType } from '../../context/GoalListContext';
+import { useUserSettings } from '../../context/UserContext';
 import { AlertCircle } from 'lucide-react';
 import { DragDropContext, DropResult } from '@hello-pangea/dnd';
 import DraggableColumns, { ColumnData, ListWithGoals } from './DraggableColumns';
 import ProgressSection from './ProgressSection';
 import AddListForm from './AddListForm';
-
+import FocusList from './FocusList';
 const Dashboard: React.FC = () => {
   const { goals, updateGoal, setGoals } = useGoals();
   const { goalLists, updateGoalList, setGoalLists } = useGoalLists();
+  const { columnPreference } = useUserSettings();
   const [isProgressOpen, setIsProgressOpen] = useState(() => localStorage.getItem('progressOpen') === 'true');
-  const [columns, setColumns] = useState<ColumnData>({
-    'column-1': [],
-    'column-2': []
-  });
-  const [isDragging, setIsDragging] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [localGoals, setLocalGoals] = useState(goals);
 
-  useEffect(() => {
-    setLocalGoals(goals);
-  }, [goals]);
-
-  const updateColumnsFromGoalLists = useCallback((currentGoalLists: GoalListType[]) => {
+  const updateColumnsFromGoalLists = useCallback((currentGoalLists: GoalListType[], currentGoals: Goal[]) => {
     const sorted = [...currentGoalLists].sort((a, b) => (a.order || 0) - (b.order || 0));
     const listsWithGoals = sorted.map(list => ({
       ...list,
-      goals: localGoals.filter(goal => goal.goalListId === list.id)
-        .sort((a, b) => (a.goal_order || 0) - (b.goal_order || 0))
+      goals: currentGoals
+        .filter(goal => goal.goalListId === list.id)
+        .sort((a, b) => (a.goalOrder || 0) - (b.goalOrder || 0))
     }));
 
-    const newColumns: ColumnData = {
-      'column-1': [],
-      'column-2': []
-    };
+    const newColumns: ColumnData = {};
+    for (let i = 1; i <= columnPreference; i++) {
+      newColumns[`column-${i}`] = [];
+    }
 
     listsWithGoals.forEach(list => {
       const columnNumber = list.column_number || 1;
-      const columnKey = `column-${columnNumber}` as keyof ColumnData;
+      // If the column number is greater than the preference, move it to the last column
+      const adjustedColumnNumber = Math.min(columnNumber, columnPreference);
+      const columnKey = `column-${adjustedColumnNumber}` as keyof ColumnData;
       newColumns[columnKey].push(list as ListWithGoals);
     });
 
     return newColumns;
-  }, [localGoals]);
+  }, [columnPreference]);
 
-  // Update columns when goalLists change, but not during drag operations
-  useEffect(() => {
-    const newColumns = updateColumnsFromGoalLists(goalLists);
-    setColumns(newColumns);
-  }, [goalLists, updateColumnsFromGoalLists]);
-
-  const handleDragStart = () => {
-    setIsDragging(true);
-  };
+  // Compute columns directly from goals and goalLists
+  const columns = useMemo(() => {
+    return updateColumnsFromGoalLists(goalLists, goals);
+  }, [goalLists, goals, updateColumnsFromGoalLists]);
 
   const handleDragEnd = async (result: DropResult) => {
     const { source, destination, type, draggableId } = result;
     
-    if (!destination) {
-      setIsDragging(false);
-      return;
-    }
-
-    if (
-      source.droppableId === destination.droppableId &&
-      source.index === destination.index
-    ) {
-      setIsDragging(false);
-      return;
-    }
+    if (!destination) return;
+    if (source.droppableId === destination.droppableId && source.index === destination.index) return;
 
     try {
       setError(null);
@@ -83,163 +63,166 @@ const Dashboard: React.FC = () => {
           throw new Error("Source or destination list not found");
         }
 
-        // Get all goals in the source list
-        const sourceGoals = localGoals
+        // Get all goals in the source and destination lists
+        const sourceGoals = goals
           .filter(goal => goal.goalListId === source.droppableId)
-          .sort((a, b) => (a.goal_order || 0) - (b.goal_order || 0));
+          .sort((a, b) => (a.goalOrder || 0) - (b.goalOrder || 0));
 
-        // Get all goals in the destination list
-        let destGoals;
-        const movedGoal = sourceGoals.find(g => g.id === draggableId);
-        
-        if (!movedGoal) {
-          throw new Error("Moved goal not found");
+        const destGoals = source.droppableId === destination.droppableId
+          ? [...sourceGoals]
+          : goals
+              .filter(goal => goal.goalListId === destination.droppableId)
+              .sort((a, b) => (a.goalOrder || 0) - (b.goalOrder || 0));
+
+        // Find the moved goal
+        const movedGoal = goals.find(g => g.id === draggableId);
+        if (!movedGoal) throw new Error("Moved goal not found");
+
+        // Create a new array of all goals
+        const newGoals = [...goals];
+        const movedGoalIndex = newGoals.findIndex(g => g.id === draggableId);
+
+        // Update the moved goal's list ID if moving between lists
+        if (source.droppableId !== destination.droppableId) {
+          newGoals[movedGoalIndex] = {
+            ...movedGoal,
+            goalListId: destination.droppableId
+          };
         }
+
+        // Calculate new orders
+        const updatedSourceGoals = newGoals
+          .filter(g => g.goalListId === source.droppableId && g.id !== draggableId)
+          .sort((a, b) => (a.goalOrder || 0) - (b.goalOrder || 0))
+          .map((g, index) => ({ ...g, goalOrder: index }));
+
+        const updatedDestGoals = newGoals
+          .filter(g => g.goalListId === destination.droppableId)
+          .sort((a, b) => (a.goalOrder || 0) - (b.goalOrder || 0));
 
         if (source.droppableId === destination.droppableId) {
-          // Moving within the same list
-          destGoals = [...sourceGoals]; // Create a new copy
-          destGoals.splice(source.index, 1); // Remove from old position
-          destGoals.splice(destination.index, 0, movedGoal); // Insert at new position
-        } else {
-          // Moving to a different list
-          destGoals = localGoals
-            .filter(goal => goal.goalListId === destination.droppableId)
-            .sort((a, b) => (a.goal_order || 0) - (b.goal_order || 0));
-          movedGoal.goalListId = destination.droppableId;
-          destGoals.splice(destination.index, 0, movedGoal);
+          updatedDestGoals.splice(source.index, 1);
         }
+        updatedDestGoals.splice(destination.index, 0, {
+          ...newGoals[movedGoalIndex],
+          goalOrder: destination.index
+        });
+        updatedDestGoals.forEach((g, index) => {
+          g.goalOrder = index;
+        });
 
-        // Calculate new orders for all affected goals
-        const updates: { id: string; goal_order: number; goalListId: string }[] = [];
-
-        if (source.droppableId === destination.droppableId) {
-          // Update orders for all goals in the list
-          destGoals.forEach((goal, index) => {
-            updates.push({
-              id: goal.id,
-              goal_order: index,
-              goalListId: goal.goalListId
-            });
-          });
-        } else {
-          // Update orders in both source and destination lists
-          const updatedSourceGoals = sourceGoals.filter(g => g.id !== movedGoal.id);
-          updatedSourceGoals.forEach((goal, index) => {
-            updates.push({
-              id: goal.id,
-              goal_order: index,
-              goalListId: goal.goalListId
-            });
-          });
-
-          destGoals.forEach((goal, index) => {
-            updates.push({
-              id: goal.id,
-              goal_order: index,
-              goalListId: goal.goalListId
-            });
-          });
-        }
-
-        // Create new goals array with updates
-        const newGoals = localGoals.map(goal => {
-          const update = updates.find(u => u.id === goal.id);
-          if (update) {
-            return {
-              ...goal,
-              goal_order: update.goal_order,
-              goalListId: update.goalListId
-            };
+        // Merge all updates back into the goals array
+        const finalGoals = newGoals.map(goal => {
+          if (goal.goalListId === source.droppableId && goal.id !== draggableId) {
+            const updated = updatedSourceGoals.find(g => g.id === goal.id);
+            return updated || goal;
+          }
+          if (goal.goalListId === destination.droppableId) {
+            const updated = updatedDestGoals.find(g => g.id === goal.id);
+            return updated || goal;
           }
           return goal;
         });
 
-        // Update both states in a single batch
-        setLocalGoals(newGoals);
-        setGoals(newGoals);
-        setColumns(prev => {
-          const newColumns = {
-            'column-1': [...prev['column-1']],
-            'column-2': [...prev['column-2']]
-          };
+        // Update state immediately
+        setGoals(finalGoals);
 
-          Object.keys(newColumns).forEach(columnKey => {
-            newColumns[columnKey as keyof ColumnData] = newColumns[columnKey as keyof ColumnData].map(list => ({
-              ...list,
-              goals: newGoals
-                .filter(goal => goal.goalListId === list.id)
-                .sort((a, b) => (a.goal_order || 0) - (b.goal_order || 0))
-            }));
-          });
-
-          return newColumns;
-        });
-
-        // Then update database
-        try {
-          await Promise.all(
-            updates.map(update =>
-              updateGoal(update.id, {
-                goal_order: update.goal_order,
-                goalListId: update.goalListId
-              })
-            )
-          );
-        } catch (error) {
-          console.error('Error updating database:', error);
-          // Revert to original state if database update fails
-          setLocalGoals(goals);
-          setGoals(goals);
-          setColumns(updateColumnsFromGoalLists(goalLists));
-        }
+        // Update database
+        const updates = [...updatedSourceGoals, ...updatedDestGoals];
+        await Promise.all(
+          updates.map(goal =>
+            updateGoal(goal.id, {
+              goalOrder: goal.goalOrder,
+              goalListId: goal.goalListId
+            })
+          )
+        );
       } else {
         // Handle list dragging
         const sourceColumn = source.droppableId as keyof ColumnData;
         const destColumn = destination.droppableId as keyof ColumnData;
         
-        const newColumns = {
-          'column-1': [...columns['column-1']],
-          'column-2': [...columns['column-2']]
-        };
-        
-        const [movedItem] = newColumns[sourceColumn].splice(source.index, 1);
+        // Get the lists for both columns
+        const sourceLists = goalLists.filter(list => list.column_number === parseInt(sourceColumn.split('-')[1]))
+          .sort((a, b) => (a.order || 0) - (b.order || 0));
+        const destLists = sourceColumn === destColumn 
+          ? [...sourceLists]
+          : goalLists.filter(list => list.column_number === parseInt(destColumn.split('-')[1]))
+              .sort((a, b) => (a.order || 0) - (b.order || 0));
+
+        // Find the moved list
+        const movedList = goalLists.find(list => list.id === draggableId);
+        if (!movedList) throw new Error("Moved list not found");
+
+        // Create new array of all lists
+        const newLists = [...goalLists];
+        const movedListIndex = newLists.findIndex(list => list.id === draggableId);
+
+        // Update column number if moving between columns
         const newColumnNumber = parseInt(destColumn.split('-')[1]);
-        movedItem.column_number = newColumnNumber;
-        newColumns[destColumn].splice(destination.index, 0, movedItem);
+        if (sourceColumn !== destColumn) {
+          newLists[movedListIndex] = {
+            ...movedList,
+            column_number: newColumnNumber
+          };
+        }
 
-        // Update UI immediately
-        setColumns(newColumns);
+        // Handle reordering within the same column
+        if (sourceColumn === destColumn) {
+          const columnLists = newLists.filter(list => list.column_number === newColumnNumber);
+          columnLists.sort((a, b) => (a.order || 0) - (b.order || 0));
+          
+          // Remove from old position and insert at new position
+          const [removed] = columnLists.splice(source.index, 1);
+          columnLists.splice(destination.index, 0, removed);
+          
+          // Update orders
+          columnLists.forEach((list, index) => {
+            const listIndex = newLists.findIndex(l => l.id === list.id);
+            if (listIndex !== -1) {
+              newLists[listIndex] = { ...list, order: index };
+            }
+          });
+        } else {
+          // Handle moving between columns
+          const sourceColumnLists = newLists
+            .filter(list => list.column_number === parseInt(sourceColumn.split('-')[1]) && list.id !== draggableId)
+            .sort((a, b) => (a.order || 0) - (b.order || 0));
 
-        // Prepare all updates
-        const updates = Object.entries(newColumns).flatMap(([columnId, lists]) =>
-          lists.map((list, index) => ({
-            id: list.id,
-            order: index,
-            column_number: parseInt(columnId.split('-')[1])
-          }))
-        );
+          const destColumnLists = newLists
+            .filter(list => list.column_number === newColumnNumber)
+            .sort((a, b) => (a.order || 0) - (b.order || 0));
 
-        // Update local state
-        const newGoalLists = goalLists.map(list => {
-          const update = updates.find(u => u.id === list.id);
-          if (update) {
-            return {
-              ...list,
-              order: update.order,
-              column_number: update.column_number
-            };
-          }
-          return list;
-        });
-        setGoalLists(newGoalLists);
+          // Update orders in source column
+          sourceColumnLists.forEach((list, index) => {
+            const listIndex = newLists.findIndex(l => l.id === list.id);
+            if (listIndex !== -1) {
+              newLists[listIndex] = { ...list, order: index };
+            }
+          });
 
-        // Then update database
+          // Update orders in destination column
+          destColumnLists.splice(destination.index, 0, {
+            ...movedList,
+            column_number: newColumnNumber
+          });
+          destColumnLists.forEach((list, index) => {
+            const listIndex = newLists.findIndex(l => l.id === list.id);
+            if (listIndex !== -1) {
+              newLists[listIndex] = { ...list, order: index };
+            }
+          });
+        }
+
+        // Update state immediately
+        setGoalLists(newLists);
+
+        // Update database
         await Promise.all(
-          updates.map(update =>
-            updateGoalList(update.id, {
-              order: update.order,
-              column_number: update.column_number
+          newLists.map(list =>
+            updateGoalList(list.id, {
+              order: list.order,
+              column_number: list.column_number
             })
           )
         );
@@ -247,12 +230,6 @@ const Dashboard: React.FC = () => {
     } catch (err) {
       console.error('Error reordering:', err);
       setError(err instanceof Error ? err.message : 'Failed to reorder');
-      // Revert to original state
-      setLocalGoals(goals);
-      setGoals(goals);
-      setColumns(updateColumnsFromGoalLists(goalLists));
-    } finally {
-      setIsDragging(false);
     }
   };
 
@@ -264,11 +241,11 @@ const Dashboard: React.FC = () => {
 
   return (
     <div className="min-h-screen p-4 md:p-8 md:pt-10">
-      <div className="max-w-6xl mx-auto space-y-6">
-        <div className="flex flex-col md:flex-row justify-between items-center md:pr-12">
+      <div className="max-w-7xl mx-auto space-y-6">
+        <div className="flex flex-col space-y-4 md:space-y-0 md:flex-row justify-between items-center md:pr-12">
           <h1 className="text-2xl md:text-2xl text-left md:text-left font-bold relative md:ml-12">
             <span
-              className="relative z-10 bg-clip-text text-transparent bg-gradient-to-r dark:from-red-400 dark:to-red-500 from-red-500 to-red-700"
+              className="relative z-10 bg-clip-text text-transparent bg-gradient-to-r dark:from-red-500 dark:to-red-500 from-red-500 to-red-700"
               style={{ letterSpacing: '1px' }}
             >
               {new Date().toLocaleString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
@@ -280,6 +257,7 @@ const Dashboard: React.FC = () => {
           />
         </div>
 
+
         {error && (
           <div className="alert alert-error shadow-lg md:mx-12">
             <AlertCircle className="stroke-current flex-shrink-0 h-6 w-6" />
@@ -287,16 +265,10 @@ const Dashboard: React.FC = () => {
           </div>
         )}
 
-        <ProgressSection 
-          goalLists={goalLists}
-          isProgressOpen={isProgressOpen}
-          toggleProgress={toggleProgress}
-        />
+        <FocusList />
 
-        <DragDropContext onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
-          <DraggableColumns
-            columns={columns}
-          />
+        <DragDropContext onDragEnd={handleDragEnd}>
+          <DraggableColumns columns={columns} />
         </DragDropContext>
       </div>
     </div>

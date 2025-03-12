@@ -52,7 +52,7 @@ const Navbar: React.FC = () => {
 
   return (
     <nav className={`sticky-navbar ${isScrolled ? 'scrolled' : ''} shadow-md`}>
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="max-w-auto mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16">
           <div className="flex items-center space-x-12">
             <Link to="/" className="flex items-center text-2xl font-bold text-text-light dark:text-text-dark gap-2">
