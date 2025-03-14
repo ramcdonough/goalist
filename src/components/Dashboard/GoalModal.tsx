@@ -106,7 +106,7 @@ const GoalModal = ({ goal }: { goal: Goal }) => {
               />
             </div>
             <div className="mt-4 flex flex-col md:flex-row justify-between items-start md:items-center sticky bottom-0 bg-surface-light dark:bg-surface-dark pt-2 pb-2 z-10 relative">
-              {process.env.NODE_ENV === 'development' || true && (
+              {process.env.NODE_ENV === 'development' && (
                 <div className="flex justify-between md:flex-row flex-col w-full md:w-3/4">
                   <input 
                     type="date" 
