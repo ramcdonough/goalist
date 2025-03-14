@@ -411,3 +411,196 @@
     flex-wrap: wrap;
   }
 }
+
+/* Add styles for the notes display mode */
+.notes-content {
+  h1 {
+    font-size: 2rem;
+    font-weight: 700;
+    margin-top: 1.5rem;
+    margin-bottom: 1rem;
+  }
+  
+  h2 {
+    font-size: 1.75rem;
+    font-weight: 600;
+    margin-top: 1.25rem;
+    margin-bottom: 0.75rem;
+  }
+  
+  h3 {
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin-top: 1rem;
+    margin-bottom: 0.5rem;
+  }
+  
+  h4 {
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin-top: 0.75rem;
+    margin-bottom: 0.5rem;
+  }
+  
+  h5 {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-top: 0.5rem;
+    margin-bottom: 0.25rem;
+  }
+  
+  h6 {
+    font-size: 1rem;
+    font-weight: 600;
+    margin-top: 0.5rem;
+    margin-bottom: 0.25rem;
+  }
+  
+  p {
+    margin-bottom: 1rem;
+    line-height: 1.6;
+  }
+  
+  ul, ol {
+    padding-left: 1.5rem;
+    margin-bottom: 1rem;
+  }
+  
+  ul {
+    list-style-type: disc;
+  }
+  
+  ol {
+    list-style-type: decimal;
+  }
+  
+  li {
+    margin-bottom: 0.25rem;
+  }
+  
+  a {
+    color: #3b82f6;
+    text-decoration: underline;
+    
+    &:hover {
+      color: #2563eb;
+    }
+  }
+  
+  code {
+    font-family: monospace;
+    background-color: rgba(0, 0, 0, 0.05);
+    padding: 0.1rem 0.2rem;
+    border-radius: 0.2rem;
+  }
+  
+  blockquote {
+    border-left: 3px solid #e5e7eb;
+    padding-left: 1rem;
+    margin-left: 0;
+    margin-right: 0;
+    font-style: italic;
+    color: #6b7280;
+  }
+  
+  hr {
+    border: none;
+    border-top: 2px solid #e5e7eb;
+    margin: 1.5rem 0;
+  }
+  
+  /* Handle text colors */
+  [style*="color"] {
+    display: inline;
+  }
+  
+  /* Dark mode adjustments */
+  @media (prefers-color-scheme: dark) {
+    code {
+      background-color: rgba(255, 255, 255, 0.1);
+    }
+    
+    blockquote {
+      border-left-color: #4b5563;
+      color: #9ca3af;
+    }
+    
+    hr {
+      border-top-color: #4b5563;
+    }
+  }
+}
+
+/* Add styles for the display wrapper */
+.tiptap-display-wrapper {
+  .ProseMirror {
+    /* Inherit all ProseMirror styles from the editor */
+    font-family: inherit;
+    
+    /* Ensure proper spacing */
+    > * + * {
+      margin-top: 0.75em;
+    }
+    
+    /* Ensure proper heading styles */
+    h1, h2, h3, h4, h5, h6 {
+      line-height: 1.1;
+    }
+    
+    /* Ensure proper list styles */
+    ul, ol {
+      padding: 0 1rem;
+    }
+    
+    /* Ensure proper code block styles */
+    pre {
+      background: #0d0d0d;
+      color: #fff;
+      font-family: 'JetBrainsMono', monospace;
+      padding: 0.75rem 1rem;
+      border-radius: 0.5rem;
+      
+      code {
+        color: inherit;
+        padding: 0;
+        background: none;
+        font-size: 0.8rem;
+      }
+    }
+    
+    /* Ensure proper inline code styles */
+    code {
+      color: inherit;
+      padding: 0.2rem 0.4rem;
+      border-radius: 0.25rem;
+    }
+    
+    /* Ensure proper blockquote styles */
+    blockquote {
+      padding-left: 1rem;
+      border-left: 2px solid rgba(#0d0d0d, 0.1);
+    }
+    
+    /* Ensure proper horizontal rule styles */
+    hr {
+      border: none;
+      border-top: 2px solid rgba(#0d0d0d, 0.1);
+      margin: 2rem 0;
+    }
+  }
+}
+
+/* Dark mode adjustments */
+@media (prefers-color-scheme: dark) {
+  .tiptap-display-wrapper {
+    .ProseMirror {
+      blockquote {
+        border-left-color: rgba(#fff, 0.1);
+      }
+      
+      hr {
+        border-top-color: rgba(#fff, 0.1);
+      }
+    }
+  }
+}
