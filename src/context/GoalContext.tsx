@@ -80,6 +80,18 @@ export const GoalProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         return;
       }
 
+      // First try to load from cache
+      const cachedGoals = localStorage.getItem(GOALS_CACHE_KEY);
+      if (cachedGoals) {
+        try {
+          const parsedGoals = JSON.parse(cachedGoals);
+          setGoals(parsedGoals);
+        } catch (error) {
+          console.error('Error parsing cached goals:', error);
+        }
+      }
+
+      // Then fetch from database to ensure we have latest data
       const { data, error } = await supabase
         .from('goals')
         .select('*')

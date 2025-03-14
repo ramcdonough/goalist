@@ -22,6 +22,7 @@ const Dashboard: React.FC = () => {
         () => localStorage.getItem("progressOpen") === "true"
     );
     const [error, setError] = useState<string | null>(null);
+    const [isLoading, setIsLoading] = useState(true);
 
     const updateColumnsFromGoalLists = useCallback(
         (currentGoalLists: GoalListType[], currentGoals: Goal[]) => {
@@ -341,7 +342,7 @@ const Dashboard: React.FC = () => {
                         <span>{error}</span>
                     </div>
                 )}
-                {goalLists.length === 0 && (
+                {!isLoading && goalLists.length === 0 && goals.length === 0 && (
                     <div className="flex flex-col items-center justify-center md:min-h-[60vh] text-center px-4">
                         <div className="bg-surface-light dark:bg-surface-dark rounded-lg p-8 border border-blue-100 dark:border-gray-800 max-w-md">
                             <h2 className="text-2xl text-text-light dark:text-text-dark font-semibold mb-3">Welcome to Your Dashboard</h2>

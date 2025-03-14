@@ -42,6 +42,18 @@ export const GoalListProvider: React.FC<{ children: ReactNode }> = ({ children }
         return;
       }
 
+      // First try to load from cache
+      const cachedLists = localStorage.getItem(GOAL_LISTS_CACHE_KEY);
+      if (cachedLists) {
+        try {
+          const parsedLists = JSON.parse(cachedLists);
+          setGoalLists(parsedLists);
+        } catch (error) {
+          console.error('Error parsing cached goal lists:', error);
+        }
+      }
+
+      // Then fetch from database to ensure we have latest data
       const { data, error } = await supabase
         .from('goal_lists')
         .select('*')
