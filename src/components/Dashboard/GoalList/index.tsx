@@ -1,25 +1,13 @@
 import React, { useState } from 'react';
-import { Goal, useGoals } from '../../context/GoalContext';
+import { Goal } from '../../../context/GoalContext';
 import { Trash, Plus, Edit2 } from 'lucide-react';
-import { useUserSettings } from '../../context/UserContext';
-import GoalItem from './GoalItem';
-import FocusGoalItem from './FocusGoalItem';
-import ConfirmationModal from './ConfirmationModal';
+import { useUserSettings } from '../../../context/UserContext';
+import GoalItem from '../GoalItem/index';
+import ConfirmationModal from '../ConfirmationModal';
 import { Droppable, Draggable } from '@hello-pangea/dnd';
+import { BaseGoalListProps } from '../types';
 
-interface BaseGoalListProps {
-  id: string;
-  title: string;
-  goals: Goal[];
-  index?: number;
-  isDraggable?: boolean;
-  allowGoalReordering?: boolean;
-  onTitleUpdate?: (newTitle: string) => Promise<void>;
-  onDelete?: () => Promise<void>;
-  onAddGoal?: (title: string) => Promise<void>;
-  isFocusList?: boolean;
-  titleComponent?: React.ReactNode;
-}
+export type GoalListProps = BaseGoalListProps;
 
 const BaseGoalList: React.FC<BaseGoalListProps> = ({
   id,
@@ -31,15 +19,17 @@ const BaseGoalList: React.FC<BaseGoalListProps> = ({
   onTitleUpdate,
   onDelete,
   onAddGoal,
-  isFocusList = false,
+  variant = 'default',
   titleComponent,
+  handleCheckboxChange,
 }) => {
-  const { toggleComplete } = useGoals();
   const [newGoalTitle, setNewGoalTitle] = useState('');
   const [isEditing, setIsEditing] = useState(false);
   const [listTitle, setListTitle] = useState(title);
   const { soundEnabled } = useUserSettings();
   const [isDeleteModalOpen, setDeleteModalOpen] = useState(false);
+
+  const isFocusVariant = variant === 'focus';
 
   const handleAddGoal = async () => {
     if (newGoalTitle.trim() === '' || !onAddGoal) return;
@@ -53,22 +43,12 @@ const BaseGoalList: React.FC<BaseGoalListProps> = ({
     setIsEditing(false);
   };
 
-  const handleCheckboxChange = (goalId: string, isChecked: boolean) => {
-    if (soundEnabled) {
-      const audio = new Audio('/check_sound.mp3');
-      audio.play();
-    }
-    toggleComplete(goalId, isChecked);
-  };
-
   const handleDeleteList = async () => {
     if (onDelete) {
       await onDelete();
       setDeleteModalOpen(false);
     }
   };
-
-  const GoalComponent = isFocusList ? FocusGoalItem : GoalItem;
 
   const defaultTitle = (
     <div className="flex items-center justify-between mb-4 px-1">
@@ -152,9 +132,10 @@ const BaseGoalList: React.FC<BaseGoalListProps> = ({
                       className={`${snapshot.isDragging ? 'opacity-50' : ''}`}
                     >
                       <div {...provided.dragHandleProps}>
-                        <GoalComponent
+                        <GoalItem
                           goal={goal}
                           handleCheckboxChange={handleCheckboxChange}
+                          variant={variant}
                         />
                       </div>
                     </div>
@@ -162,9 +143,10 @@ const BaseGoalList: React.FC<BaseGoalListProps> = ({
                 </Draggable>
               ) : (
                 <div key={goal.id}>
-                  <GoalComponent
+                  <GoalItem
                     goal={goal}
                     handleCheckboxChange={handleCheckboxChange}
+                    variant={variant}
                   />
                 </div>
               )
@@ -175,8 +157,13 @@ const BaseGoalList: React.FC<BaseGoalListProps> = ({
     </Droppable>
   );
 
+  // Different container styles based on variant
+  const containerClasses = isFocusVariant
+    ? "goal-list bg-blue-100/90 dark:bg-blue-900/30 rounded-lg shadow-lg border border-blue-300/20 dark:border-blue-400/20 py-2 px-1 md:p-6"
+    : "goal-list bg-surface-light dark:bg-surface-dark rounded-lg shadow-lg p-6 border border-gray-200 dark:border-gray-800";
+
   const content = (
-    <div className={`goal-list ${!isFocusList ? 'bg-surface-light dark:bg-surface-dark rounded-lg shadow-lg p-6 border border-gray-200 dark:border-gray-800' : ''}`}>
+    <div className={containerClasses}>
       {titleComponent || defaultTitle}
       {goalsList}
 

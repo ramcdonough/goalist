@@ -1,6 +1,6 @@
 import { Goal } from "../../context/GoalContext";
 import { useGoals } from "../../context/GoalContext";
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import TextEditor from "./TextEditor";
 
 const GoalModal = ({ goal }: { goal: Goal }) => {
@@ -24,6 +24,35 @@ const GoalModal = ({ goal }: { goal: Goal }) => {
     carryOver: goal.carryOver,
   });
 
+  const titleRef = useRef<HTMLTextAreaElement>(null);
+
+  // Function to adjust textarea height
+  const adjustTextareaHeight = (textarea: HTMLTextAreaElement) => {
+    // Reset height to get the correct scrollHeight
+    textarea.style.height = '0px';
+    // Set to scrollHeight to fit content exactly
+    textarea.style.height = `${textarea.scrollHeight}px`;
+  };
+
+  // Initialize textarea height on mount and when title changes
+  useEffect(() => {
+    if (titleRef.current) {
+      adjustTextareaHeight(titleRef.current);
+    }
+  }, [title, titleRef]);
+
+  // Also adjust on window resize
+  useEffect(() => {
+    const handleResize = () => {
+      if (titleRef.current) {
+        adjustTextareaHeight(titleRef.current);
+      }
+    };
+    
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
@@ -46,62 +75,71 @@ const GoalModal = ({ goal }: { goal: Goal }) => {
 
   return (
     <dialog id={`goal-modal-${goal.id}`} className="modal cursor-default">
-      <div className="modal-box px-0 py-4 md:px-4 text-left max-w-2xl md:border border-gray-700 bg-gradient-to-b from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-900/60 overflow-hidde min-h-screen md:min-h-fit">
+      <div className="modal-box px-0 py-4 md:px-4 text-left max-w-5xl max-h-[95vh] min-h-[90vh] md:border border-gray-700 bg-surface-light dark:bg-surface-dark overflow-hidden flex flex-col">
         {alertMessage && (
           <div className={`alert ${alertType === 'success' ? 'alert-success' : 'alert-error'} mb-4 alert-sm max-w-lg w-2/3 mx-auto max-h-10 flex items-center justify-center border text-white`}>
             {alertMessage}
           </div>
         )}
         <form method="dialog">
-          <button className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2" onClick={() => clearAlertMessage()}>✕</button>
+          <button className="btn btn-circle text-text-light dark:text-text-dark btn-ghost absolute right-2 top-2" onClick={() => clearAlertMessage()}>✕</button>
         </form>
-        <form method="submit" onSubmit={handleSubmit} className="dark:text-text-dark text-text-light">
-          <input 
-            type="text" 
-            value={title} 
-            onChange={(e) => setTitle(e.target.value)} 
-            placeholder="Title" 
-            className="input md:text-xl mb-2 mx-3 md:mx-0 font-bold border-none bg-transparent dark:focus:border-primary-dark focus:outline-primary-light input-primary w-10/12 md:w-11/12" 
-          />
-          <div className="md:px-5">
-            <div className="bg-white dark:bg-gray-800 rounded-lg mb-4 max-h-[400px] md:max-h-[500px] overflow-y-auto">
+        <form method="submit" onSubmit={handleSubmit} className="dark:text-text-dark text-text-light flex flex-col flex-grow h-full overflow-hidden">
+          <div className="px-3 md:px-0 w-11/12">
+            <textarea 
+              ref={titleRef}
+              value={title} 
+              onChange={(e) => {
+                setTitle(e.target.value);
+              }}
+              placeholder="Title" 
+              rows={1}
+              className="textarea w-full resize-none md:text-xl mb-2 font-bold border-none bg-transparent dark:focus:border-primary-dark focus:outline-primary-light leading-relaxed py-2 overflow-hidden" 
+            />
+          </div>
+          <div className="md:px-5 overflow-hidden">
+            <div className="rounded-lg">
               <TextEditor 
                 initialContent={description}
                 onChange={setDescription}
-                height={"full"}
+                height={"800px"}
               />
             </div>
-            <div className="flex justify-between md:flex-row flex-col">
-              <input 
-                type="date" 
-                value={dueDate} 
-                onChange={(e) => setDueDate(e.target.value)} 
-                className="input md:w-1/3 border-none bg-transparent dark:focus:border-primary-dark focus:outline-primary-light input-primary" 
-              />
-              <select 
-                value={repeatFrequency || ''} 
-                onChange={(e) => setRepeatFrequency(e.target.value as 'daily' | 'weekly' | 'monthly' | 'yearly' | null)} 
-                className="select md:w-1/3 text-lg bg-transparent"
-              >
-                <option value="">Select Repeat Frequency</option>
-                <option value="daily">Daily</option>
-                <option value="weekly">Weekly</option>
-                <option value="monthly">Monthly</option>
-                <option value="yearly">Yearly</option>
-              </select>
-              <div className="flex justify-between md:items-center w-full md:w-1/3 md:text-center bg-transparent px-10">
-                <input
-                  type="checkbox"
-                  checked={carryOver} 
-                  className="checkbox md:mr-2 md:ml-10" 
-                  onChange={(e) => setCarryOver(e.target.checked)} 
-                />
-                <label className="checkbox-lg">Carry Over</label>
+            <div className="mt-4 flex flex-col md:flex-row justify-between items-start md:items-center sticky bottom-0 bg-surface-light dark:bg-surface-dark pt-2 pb-2 z-10 relative">
+              {process.env.NODE_ENV === 'development' || true && (
+                <div className="flex justify-between md:flex-row flex-col w-full md:w-3/4">
+                  <input 
+                    type="date" 
+                    value={dueDate} 
+                    onChange={(e) => setDueDate(e.target.value)} 
+                    className="input md:w-1/3 border-none bg-transparent dark:focus:border-primary-dark focus:outline-primary-light input-primary" 
+                  />
+                  <select 
+                    value={repeatFrequency || ''} 
+                    onChange={(e) => setRepeatFrequency(e.target.value as 'daily' | 'weekly' | 'monthly' | 'yearly' | null)} 
+                    className="select md:w-1/3 text-lg bg-transparent"
+                  >
+                    <option value="">Select Repeat Frequency</option>
+                    <option value="daily">Daily</option>
+                    <option value="weekly">Weekly</option>
+                    <option value="monthly">Monthly</option>
+                    <option value="yearly">Yearly</option>
+                  </select>
+                  <div className="flex justify-between md:items-center w-full md:w-1/3 md:text-center bg-transparent px-10">
+                    <input
+                      type="checkbox"
+                      checked={carryOver} 
+                      className="checkbox md:mr-2 md:ml-10" 
+                      onChange={(e) => setCarryOver(e.target.checked)} 
+                    />
+                    <label className="checkbox-lg">Carry Over</label>
+                  </div>
+                </div>
+              )}
+              <div className="flex justify-end w-full md:w-1/4 mt-4 pr-4 md:mt-0 md:absolute md:bottom-2 md:right-5">
+                <button type="submit" className="btn bg-primary-light dark:bg-primary-dark border-none text-white">Save</button>
               </div>
             </div>
-          </div>
-          <div className="flex justify-end mt-5 md:mr-0 mr-5">
-            <button type="submit" className="btn bg-primary-light dark:bg-primary-dark border-none text-white">Save</button>
           </div>
         </form>
       </div>

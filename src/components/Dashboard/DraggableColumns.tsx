@@ -2,7 +2,7 @@ import React from 'react';
 import { Goal } from '../../context/GoalContext';
 import { GoalList as GoalListType } from '../../context/GoalListContext';
 import { Droppable } from '@hello-pangea/dnd';
-import GoalList from './GoalList';
+import GoalList from './GoalList/GoalList';
 import { useUserSettings } from '../../context/UserContext';
 
 export type ListWithGoals = GoalListType & { goals: Goal[] };

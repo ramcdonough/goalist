@@ -1,11 +1,11 @@
 import React from 'react';
-import { useGoals } from "../../context/GoalContext";
-import BaseGoalList from './BaseGoalList';
+import { useGoals } from "../../../context/GoalContext";
+import GoalList from './index';
 import FocusListTitle from './FocusListTitle';
 import { DragDropContext, DropResult } from '@hello-pangea/dnd';
 
 const FocusList = () => {
-  const { goals, updateGoal } = useGoals();
+  const { goals, updateGoal, toggleComplete } = useGoals();
 
   // Filter goals that are marked as focus
   const focusedGoals = goals.filter(goal => goal.isFocused);
@@ -46,26 +46,26 @@ const FocusList = () => {
     }
   };
 
-  // Custom wrapper component for focus list styling
-  const FocusListWrapper = () => (
-    <div className="focus-list-container bg-blue-100/90 dark:bg-blue-900/30 rounded-lg shadow-lg border border-blue-300/20 dark:border-blue-400/20 p-6">
-      <BaseGoalList
-        id="focus-list"
-        title="Focus List"
-        goals={focusedGoals}
-        isDraggable={false}
-        allowGoalReordering={true}
-        isFocusList={true}
-        titleComponent={<FocusListTitle title="Focus List" goalCount={focusedGoals.length} />}
-      />
-    </div>
-  );
+  const handleCheckboxChange = (goalId: string, isChecked: boolean) => {
+    toggleComplete(goalId, isChecked);
+  };
 
   return (
     <DragDropContext onDragEnd={handleDragEnd}>
-      {focusedGoals.length > 0 && <FocusListWrapper />}
+      {focusedGoals.length > 0 && (
+        <GoalList
+          id="focus-list"
+          title="Focus List"
+          goals={focusedGoals}
+          isDraggable={false}
+          allowGoalReordering={true}
+          variant="focus"
+          titleComponent={<FocusListTitle title="Focus List" goalCount={focusedGoals.length} />}
+          handleCheckboxChange={handleCheckboxChange}
+        />
+      )}
     </DragDropContext>
   );
 };
 
-export default FocusList;
+export default FocusList; 

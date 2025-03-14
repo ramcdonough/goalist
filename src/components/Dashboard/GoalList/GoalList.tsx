@@ -1,7 +1,7 @@
 import React from 'react';
-import { Goal, useGoals } from '../../context/GoalContext';
-import { useGoalLists } from '../../context/GoalListContext';
-import BaseGoalList from './BaseGoalList';
+import { Goal, useGoals } from '../../../context/GoalContext';
+import { useGoalLists } from '../../../context/GoalListContext';
+import BaseGoalList from './index';
 
 interface GoalListProps {
   goalListId: string;
@@ -11,7 +11,7 @@ interface GoalListProps {
 }
 
 const GoalList: React.FC<GoalListProps> = ({ goalListId, title, goals, index }) => {
-  const { addGoal } = useGoals();
+  const { addGoal, toggleComplete } = useGoals();
   const { updateGoalList, deleteGoalList } = useGoalLists();
 
   const handleAddGoal = async (newGoalTitle: string) => {
@@ -43,6 +43,10 @@ const GoalList: React.FC<GoalListProps> = ({ goalListId, title, goals, index }) 
     await deleteGoalList(goalListId);
   };
 
+  const handleCheckboxChange = (goalId: string, isChecked: boolean) => {
+    toggleComplete(goalId, isChecked);
+  };
+
   return (
     <BaseGoalList
       id={goalListId}
@@ -52,8 +56,10 @@ const GoalList: React.FC<GoalListProps> = ({ goalListId, title, goals, index }) 
       onTitleUpdate={handleUpdateTitle}
       onDelete={handleDelete}
       onAddGoal={handleAddGoal}
+      handleCheckboxChange={handleCheckboxChange}
+      variant="default"
     />
   );
 };
 
-export default GoalList;
+export default GoalList; 

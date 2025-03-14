@@ -1,7 +1,7 @@
 import React from 'react';
 import { ChevronUp, ChevronDown } from 'lucide-react';
-import { useGoals } from '../../context/GoalContext';
-import { GoalList } from '../../context/GoalListContext';
+import { useGoals } from '../../../context/GoalContext';
+import { GoalList } from '../../../context/GoalListContext';
 import ProgressMeter from './ProgressMeter';
 
 interface ProgressSectionProps {

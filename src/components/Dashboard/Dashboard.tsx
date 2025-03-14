@@ -11,9 +11,9 @@ import DraggableColumns, {
     ColumnData,
     ListWithGoals,
 } from "./DraggableColumns";
-import ProgressSection from "./ProgressSection";
+import ProgressSection from "./Progress/ProgressSection";
 import AddListForm from "./AddListForm";
-import FocusList from "./FocusList";
+import FocusList from "./GoalList/FocusList";
 const Dashboard: React.FC = () => {
     const { goals, updateGoal, setGoals } = useGoals();
     const { goalLists, updateGoalList, setGoalLists } = useGoalLists();
@@ -339,6 +339,16 @@ const Dashboard: React.FC = () => {
                     <div className="alert alert-error shadow-lg md:mx-12">
                         <AlertCircle className="stroke-current flex-shrink-0 h-6 w-6" />
                         <span>{error}</span>
+                    </div>
+                )}
+                {goalLists.length === 0 && (
+                    <div className="flex flex-col items-center justify-center md:min-h-[60vh] text-center px-4">
+                        <div className="bg-surface-light dark:bg-surface-dark rounded-lg p-8 border border-blue-100 dark:border-gray-800 max-w-md">
+                            <h2 className="text-2xl text-text-light dark:text-text-dark font-semibold mb-3">Welcome to Your Dashboard</h2>
+                            <p className="text-text-light dark:text-text-dark text-lg">
+                                No goals yet. Create your first list to get started!
+                            </p>
+                        </div>
                     </div>
                 )}
 
