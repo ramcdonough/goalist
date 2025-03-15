@@ -42,20 +42,25 @@ const Settings: React.FC = () => {
           <div className="flex items-center justify-between">
             <ThemeToggle label="Theme" value={darkModeEnabled} toggleMethod={toggleTheme} />
           </div>
+          { process.env.NODE_ENV === 'development' && (
           <div className="flex items-center justify-between">
             <SettingsToggle label="Sound Effects" value={soundEnabled} toggleMethod={toggleSound} />
           </div>
+          )}    
           <div className="flex items-center justify-between">
             <label className="flex items-center gap-2">
-              <span className="text-text-light dark:text-text-dark font-semibold">Dashboard Columns</span>
               <select 
                 value={columnPreference} 
                 onChange={handleColumnChange}
-                className="select select-bordered w-24 text-text-light dark:text-text-dark bg-surface-light dark:bg-surface"
+                className="select select-bordered select-sm border-black/50 dark:border-white/50 w-15 text-text-light dark:text-text-dark bg-surface-light dark:bg-surface"
               >
                 <option value={2}>2</option>
                 <option value={3}>3</option>
               </select>
+              <div className="flex flex-col text-left">
+                <span className="text-text-light dark:text-text-dark font-semibold">Dashboard Columns</span>
+                <span className="text-text-light/50 dark:text-text-dark/50 font-semibold md:hidden">Only applies to desktop version</span>
+              </div>
             </label>
           </div>
         </div>

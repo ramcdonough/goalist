@@ -11,7 +11,7 @@ interface AddListFormProps {
 
 const AddListForm: React.FC<AddListFormProps> = ({ onError, columns }) => {
   const [newListTitle, setNewListTitle] = useState('');
-  const [isInputVisible, setInputVisible] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const { addGoalList } = useGoalLists();
   const { columnPreference } = useUserSettings();
 
@@ -33,36 +33,85 @@ const AddListForm: React.FC<AddListFormProps> = ({ onError, columns }) => {
 
       await addGoalList({ title: newListTitle, column_number: minColumn });
       setNewListTitle('');
-      setInputVisible(false);
+      setIsModalOpen(false);
     } catch (err) {
       console.error('Error adding list:', err);
       onError(err instanceof Error ? err.message : 'Failed to add goal list');
     }
   };
 
+  const openModal = () => {
+    setNewListTitle('');
+    setIsModalOpen(true);
+  };
+
+  const closeModal = () => {
+    setIsModalOpen(false);
+  };
+
   return (
-    <div className="flex justify-end gap-2 md:ml-12">
-      {isInputVisible && (
-        <input
-          type="text"
-          value={newListTitle}
-          onChange={(e) => setNewListTitle(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter' && newListTitle.trim() !== '') {
-              handleAddList();
-            }
-          }}
-          placeholder="Add new list..."
-          className="input input-bordered bg-surface-light dark:bg-surface text-text-light dark:text-text-dark flex-1 max-w-xs focus:outline-none"
-        />
+    <>
+      <div className="flex justify-end gap-2 md:ml-12">
+        <button
+          onClick={openModal}
+          className="btn bg-primary-light dark:bg-primary-dark text-white border-none hover:bg-primary dark:hover:bg-primary-dark/80 shadow-sm hover:shadow"
+        >
+          <Plus size={15} strokeWidth={3} className="mr-1"/> Add List
+        </button>
+      </div>
+
+      {/* Add List Modal */}
+      {isModalOpen && (
+        <dialog className="modal modal-open">
+          <div className="modal-box bg-surface-light dark:bg-surface text-text-light dark:text-text-dark rounded-lg shadow-lg max-w-sm">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="font-bold text-lg">New List</h3>
+              <button 
+                className="btn btn-sm btn-circle btn-ghost" 
+                onClick={closeModal}
+              >
+                ✕
+              </button>
+            </div>
+            
+            <div className="form-control w-full mb-6">
+              <input
+                type="text"
+                value={newListTitle}
+                onChange={(e) => setNewListTitle(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && newListTitle.trim() !== '') {
+                    handleAddList();
+                  }
+                }}
+                placeholder="Enter list name..."
+                className="input border-none bg-black/5 dark:bg-white/10 text-text-light dark:text-text-dark w-full focus:outline-none"
+                autoFocus
+              />
+            </div>
+            
+            <div className="flex justify-end gap-2">
+              <button 
+                className="btn btn-ghost"
+                onClick={closeModal}
+              >
+                Cancel
+              </button>
+              <button 
+                className="btn bg-primary-light dark:bg-primary-dark text-white border-none hover:bg-primary-light/90 dark:hover:bg-primary-dark/90 disabled:opacity-50"
+                onClick={handleAddList}
+                disabled={newListTitle.trim() === ''}
+              >
+                Create
+              </button>
+            </div>
+          </div>
+          <form method="dialog" className="modal-backdrop">
+            <button onClick={closeModal}>close</button>
+          </form>
+        </dialog>
       )}
-      <button
-        onClick={() => setInputVisible(!isInputVisible)}
-        className="btn bg-primary-light dark:bg-primary-dark text-white border-none hover:bg-primary dark:hover:bg-primary-dark/80"
-      >
-        <Plus size={15} strokeWidth={3}/> Add List
-      </button>
-    </div>
+    </>
   );
 };
 
