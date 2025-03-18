@@ -56,7 +56,7 @@ const Navbar: React.FC = () => {
         <div className="flex justify-between h-16">
           <div className="flex items-center space-x-12">
             <Link to="/" className="flex items-center text-2xl font-bold text-text-light dark:text-text-dark gap-2">
-              <ListTodo size={30} strokeWidth={2}/>
+              <ListTodo size={22} strokeWidth={2}/>
               <img src="/logo_goalist.png" alt="Goalist" className="h-6 md:h-7 w-auto"/>
             </Link>
             <div className="hidden md:flex items-center space-x-4">

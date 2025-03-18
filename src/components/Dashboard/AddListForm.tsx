@@ -51,14 +51,15 @@ const AddListForm: React.FC<AddListFormProps> = ({ onError, columns }) => {
 
   return (
     <>
-      <div className="flex justify-end gap-2 md:ml-12">
-        <button
-          onClick={openModal}
-          className="btn bg-primary-light dark:bg-primary-dark text-white border-none hover:bg-primary dark:hover:bg-primary-dark/80 shadow-sm hover:shadow"
-        >
-          <Plus size={15} strokeWidth={3} className="mr-1"/> Add List
-        </button>
-      </div>
+      <button
+        onClick={openModal}
+        className="relative h-12 px-5 bg-white dark:bg-gray-800 text-primary-dark dark:text-primary-light font-medium rounded-lg flex items-center justify-center gap-2 shadow-md hover:shadow-lg transform transition-all duration-200 hover:translate-y-[-1px] active:translate-y-[1px]"
+      >
+        <span className="flex items-center justify-center bg-primary-light dark:bg-primary-dark rounded-full w-5 h-5">
+          <Plus size={14} strokeWidth={3} className="text-white" />
+        </span>
+        <span className="whitespace-nowrap">Add List</span>
+      </button>
 
       {/* Add List Modal */}
       {isModalOpen && (

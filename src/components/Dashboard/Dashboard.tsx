@@ -14,6 +14,7 @@ import DraggableColumns, {
 import ProgressSection from "./Progress/ProgressSection";
 import AddListForm from "./AddListForm";
 import FocusList from "./GoalList/FocusList";
+import FocusProgress from "./Progress/FocusProgress";
 const Dashboard: React.FC = () => {
     const { goals, updateGoal, setGoals } = useGoals();
     const { goalLists, updateGoalList, setGoalLists } = useGoalLists();
@@ -317,23 +318,15 @@ const Dashboard: React.FC = () => {
     };
 
     return (
-        <div className="min-h-screen p-4 md:p-8 md:pt-10">
-            <div className="max-w-7xl mx-auto space-y-6">
-                <div className="flex flex-col space-y-4 md:space-y-0 md:flex-row justify-between items-center md:pr-12">
-                    <h1 className="text-2xl md:text-2xl text-left md:text-left font-bold relative md:ml-12">
-                        <span
-                            className="relative z-10 bg-clip-text text-transparent bg-gradient-to-r dark:from-red-500 dark:to-red-500 from-red-500 to-red-700"
-                            style={{ letterSpacing: "1px" }}
-                        >
-                            {new Date().toLocaleString("en-US", {
-                                weekday: "long",
-                                year: "numeric",
-                                month: "long",
-                                day: "numeric",
-                            })}
-                        </span>
-                    </h1>
-                    <AddListForm onError={setError} columns={columns} />
+        <div className="min-h-screen px-2 md:p-8 md:pt-10">
+            <div className="max-w-7xl mx-auto">
+                <div className="flex flex-row justify-between items-stretch bg-gradient-to-r from-primary-light to-primary-dark dark:from-primary-dark/90 dark:to-indigo-800/90 p-3 md:p-4 gap-4 rounded-lg shadow-lg border border-primary-light/20 dark:border-indigo-500/20 mb-4 transition-all">
+                    <div className="flex-grow">
+                        <FocusProgress />
+                    </div>
+                    <div className="flex-shrink-0 flex items-center">
+                        <AddListForm onError={setError} columns={columns} />
+                    </div>
                 </div>
 
                 {error && (
@@ -352,12 +345,14 @@ const Dashboard: React.FC = () => {
                         </div>
                     </div>
                 )}
+                <div className="space-y-4">
+                    <FocusList />
 
-                <FocusList />
+                    <DragDropContext onDragEnd={handleDragEnd}>
+                        <DraggableColumns columns={columns} />
+                    </DragDropContext>
+                </div>
 
-                <DragDropContext onDragEnd={handleDragEnd}>
-                    <DraggableColumns columns={columns} />
-                </DragDropContext>
             </div>
         </div>
     );

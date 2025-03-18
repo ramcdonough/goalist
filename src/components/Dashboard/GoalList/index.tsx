@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Goal } from '../../../context/GoalContext';
-import { Trash, Plus, Edit2 } from 'lucide-react';
+import { Trash, Plus, Edit2, Save } from 'lucide-react';
 import { useUserSettings } from '../../../context/UserContext';
 import GoalItem from '../GoalItem/index';
 import ConfirmationModal from '../ConfirmationModal';
@@ -53,51 +53,46 @@ const BaseGoalList: React.FC<BaseGoalListProps> = ({
   const defaultTitle = (
     <div className="flex items-center justify-between mb-4 px-1">
       {isEditing ? (
-        <div className="flex items-center gap-2 flex-1 text-text-light dark:text-text-dark">
-          <input
-            type="text"
-            value={listTitle}
-            onChange={(e) => setListTitle(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter') {
-                handleUpdateTitle();
-              }
-            }}
-            onBlur={() => {
-              if (listTitle.trim() === '') {
-                setListTitle(title);
-              } else {
-                handleUpdateTitle();
-              }
-            }}
-            className="input input-sm flex-1 bg-transparent border-none text-xl font-semibold"
-            autoFocus
-          />
+        <>
+          <div className="flex-1">
+            <input
+              type="text"
+              value={listTitle}
+              onChange={(e) => setListTitle(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  handleUpdateTitle();
+                }
+              }}
+              onBlur={() => {
+                if (listTitle.trim() === '') {
+                  setListTitle(title);
+                } else {
+                  handleUpdateTitle();
+                }
+              }}
+              className="input input-sm bg-transparent border-none text-xl font-semibold text-text-light dark:text-text-dark pl-2 ml-0 w-full"
+              autoFocus 
+            />
+          </div>
           <button
             onClick={handleUpdateTitle}
             className="btn btn-sm bg-primary-light dark:bg-primary-dark text-white border-none rounded-full"
           >
-            Save
+            <span className="hidden md:block">Save</span>
+            <Save className="md:hidden" size={16} />
           </button>
-        </div>
+        </>
       ) : (
-        <h2 className="text-xl font-semibold text-text-light dark:text-text-dark flex items-center">
-          <span className="mr-2" onClick={() => onTitleUpdate && setIsEditing(true)}>{title}</span>
-          <span className="text-sm font-normal text-text-light/60 dark:text-text-dark/60">
-            ({goals.length})
-          </span>
-        </h2>
-      )}
-      {(onTitleUpdate || onDelete) && (
-        <div className="flex items-center gap-2">
-          {onTitleUpdate && (
-            <button
-              onClick={() => setIsEditing(!isEditing)}
-              className="btn btn-sm btn-ghost"
-            >
-              <Edit2 size={16} />
-            </button>
-          )}
+        <>
+          <div className="flex-1">
+            <h2 className="text-xl font-semibold text-text-light dark:text-text-dark flex items-center">
+              <span className="mr-2 pl-2" onClick={() => onTitleUpdate && setIsEditing(true)}>{title}</span>
+              <span className="text-sm font-normal text-text-light/60 dark:text-text-dark/60">
+                ({goals.length})
+              </span>
+            </h2>
+          </div>
           {onDelete && (
             <button
               onClick={() => setDeleteModalOpen(true)}
@@ -106,7 +101,7 @@ const BaseGoalList: React.FC<BaseGoalListProps> = ({
               <Trash size={16} />
             </button>
           )}
-        </div>
+        </>
       )}
     </div>
   );
@@ -160,7 +155,7 @@ const BaseGoalList: React.FC<BaseGoalListProps> = ({
   // Different container styles based on variant
   const containerClasses = isFocusVariant
     ? "goal-list bg-blue-100/90 dark:bg-blue-900/30 rounded-lg shadow-lg border border-blue-300/20 dark:border-blue-400/20 py-2 px-1 md:p-6"
-    : "goal-list bg-surface-light dark:bg-surface-dark rounded-lg shadow-lg p-6 border border-gray-200 dark:border-gray-800";
+    : "goal-list bg-surface-light dark:bg-surface-dark rounded-lg shadow-lg border border-gray-200 dark:border-gray-800 py-2 px-1 md:p-6";
 
   const content = (
     <div className={containerClasses}>
