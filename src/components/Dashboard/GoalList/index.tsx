@@ -116,7 +116,14 @@ const BaseGoalList: React.FC<BaseGoalListProps> = ({
           id="goal-container"
         >
           {goals
-            .sort((a, b) => (a.goalOrder || 0) - (b.goalOrder || 0))
+            .sort((a, b) => {
+              // First sort by completion status
+              if (!!a.completedAt !== !!b.completedAt) {
+                return !!a.completedAt ? 1 : -1; // Completed goals go to the bottom
+              }
+              // Then sort by goal order
+              return (a.goalOrder || 0) - (b.goalOrder || 0);
+            })
             .map((goal, index) => (
               allowGoalReordering ? (
                 <Draggable key={goal.id} draggableId={goal.id} index={index}>

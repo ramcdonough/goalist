@@ -492,6 +492,7 @@ interface TextEditorProps {
   height?: string
   width?: string | number
   className?: string
+  autoFocus?: boolean
 }
 
 const TextEditor: React.FC<TextEditorProps> = ({ 
@@ -499,11 +500,21 @@ const TextEditor: React.FC<TextEditorProps> = ({
   onChange, 
   height = '200px',
   width = '100%',
-  className = ''
+  className = '',
+  autoFocus = false
 }) => {
   const handleUpdate = ({ editor }: { editor: any }) => {
     if (onChange) {
       onChange(editor.getHTML())
+    }
+  }
+
+  // Focus the editor when it's mounted if autoFocus is true
+  const onEditorReady = ({ editor }: { editor: any }) => {
+    if (autoFocus && editor) {
+      setTimeout(() => {
+        editor.commands.focus('end')
+      }, 0)
     }
   }
 
@@ -514,6 +525,7 @@ const TextEditor: React.FC<TextEditorProps> = ({
         extensions={extensions}
         content={initialContent}
         onUpdate={handleUpdate}
+        onTransaction={onEditorReady}
         editorProps={{
           attributes: {
             class: `prose dark:prose-invert p-4 rounded-b-lg bg-surface-dark/10 dark:bg-surface-light/10`,

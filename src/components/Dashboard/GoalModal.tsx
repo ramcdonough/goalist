@@ -57,6 +57,42 @@ const GoalModal = ({ goal }: { goal: Goal }) => {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
+  // When entering edit mode, focus the title field
+  useEffect(() => {
+    // Focus the title field when the modal is opened
+    const handleModalOpen = () => {
+      if (titleRef.current) {
+        titleRef.current.focus();
+      }
+    };
+    
+    const modal = document.getElementById(`goal-modal-${goal.id}`);
+    if (modal) {
+      modal.addEventListener('show', handleModalOpen);
+      return () => modal.removeEventListener('show', handleModalOpen);
+    }
+  }, [goal.id]);
+
+  // Reset form when modal is closed
+  useEffect(() => {
+    const handleModalClose = () => {
+      // Reset all form fields to their original values
+      setTitle(originalValues.title);
+      setDescription(originalValues.description);
+      setDueDate(originalValues.dueDate);
+      setRepeatFrequency(originalValues.repeatFrequency);
+      setCarryOver(originalValues.carryOver);
+      // Also reset edit mode
+      setIsEditingNotes(false);
+    };
+    
+    const modal = document.getElementById(`goal-modal-${goal.id}`) as HTMLDialogElement;
+    if (modal) {
+      modal.addEventListener('close', handleModalClose);
+      return () => modal.removeEventListener('close', handleModalClose);
+    }
+  }, [goal.id, originalValues]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
@@ -203,6 +239,7 @@ const GoalModal = ({ goal }: { goal: Goal }) => {
                     initialContent={description}
                     onChange={setDescription}
                     height={"800px"}
+                    autoFocus={true}
                   />
                   <button 
                     type="button"
