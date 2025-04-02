@@ -6,6 +6,7 @@ interface UserSettings {
   sound_enabled: boolean;
   dark_mode_enabled: boolean;
   column_preference: number;
+  archive_after_days: number | null;
 }
 
 interface UserContextType {
@@ -16,6 +17,8 @@ interface UserContextType {
   toggleTheme: () => Promise<void>;
   columnPreference: number;
   setColumnPreference: (columns: number) => Promise<void>;
+  archiveAfterDays: number | null;
+  setArchiveAfterDays: (days: number | null) => Promise<void>;
 }
 
 const UserContext = createContext<UserContextType | undefined>(undefined);
@@ -36,6 +39,7 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [soundEnabled, setSoundEnabled] = useState(true);
   const [darkModeEnabled, setDarkModeEnabled] = useState(cachedTheme === 'dark');
   const [columnPreference, setColumnPreferenceState] = useState(2);
+  const [archiveAfterDays, setArchiveAfterDaysState] = useState<number | null>(null);
   const [isInitialized, setIsInitialized] = useState(false);
 
   useEffect(() => {
@@ -69,7 +73,8 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
               user_id: user.id,
               sound_enabled: true,
               dark_mode_enabled: darkModeEnabled, // Use the value from localStorage
-              column_preference: 2
+              column_preference: 2,
+              archive_after_days: null
             });
 
           if (insertError) {
@@ -79,11 +84,13 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           
           setSoundEnabled(true);
           setColumnPreferenceState(2);
+          setArchiveAfterDaysState(null);
         } else {
           // Update state with existing settings
           setSoundEnabled(existingSettings.sound_enabled);
           setDarkModeEnabled(existingSettings.dark_mode_enabled);
           setColumnPreferenceState(existingSettings.column_preference || 2);
+          setArchiveAfterDaysState(existingSettings.archive_after_days);
           
           // Update localStorage with server value
           localStorage.setItem('theme', existingSettings.dark_mode_enabled ? 'dark' : 'light');
@@ -182,6 +189,30 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
   };
 
+  const setArchiveAfterDays = async (days: number | null) => {
+    try {
+      if (!user) return;
+
+      setArchiveAfterDaysState(days);
+
+      // Update the settings in the database
+      const { error } = await supabase
+        .from('user_settings')
+        .update({
+          archive_after_days: days
+        })
+        .eq('user_id', user.id);
+
+      if (error) {
+        console.error('Error updating archive after days setting:', error);
+        throw error;
+      }
+    } catch (error) {
+      console.error('Failed to update archive settings:', error);
+      throw error;
+    }
+  };
+
   return (
     <UserContext.Provider value={{ 
       soundEnabled, 
@@ -190,7 +221,9 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       darkModeEnabled, 
       toggleTheme,
       columnPreference,
-      setColumnPreference
+      setColumnPreference,
+      archiveAfterDays,
+      setArchiveAfterDays
     }}>
       {children}
     </UserContext.Provider>

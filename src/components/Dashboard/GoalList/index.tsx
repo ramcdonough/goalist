@@ -116,6 +116,7 @@ const BaseGoalList: React.FC<BaseGoalListProps> = ({
           id="goal-container"
         >
           {goals
+            .filter(goal => !goal.archivedAt)
             .sort((a, b) => {
               // First sort by completion status
               if (!!a.completedAt !== !!b.completedAt) {

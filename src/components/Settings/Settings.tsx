@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useUserSettings } from '../../context/UserContext';
 import SettingsToggle from './SettingsToggle';
 import ThemeToggle from './ThemeToggle';
+import ArchiveSettings from './Archive/ArchiveSettings';
 import { AlertCircle } from 'lucide-react';
 
 const Settings: React.FC = () => {
@@ -46,8 +47,8 @@ const Settings: React.FC = () => {
           <div className="flex items-center justify-between">
             <SettingsToggle label="Sound Effects" value={soundEnabled} toggleMethod={toggleSound} />
           </div>
-          )}    
-          <div className="flex items-center justify-between">
+          )}
+                    <div className="flex items-center justify-between">
             <label className="flex items-center gap-2">
               <select 
                 value={columnPreference} 
@@ -62,6 +63,9 @@ const Settings: React.FC = () => {
                 <span className="text-text-light/50 dark:text-text-dark/50 font-semibold md:hidden">Only applies to desktop version</span>
               </div>
             </label>
+          </div>
+          <div className="flex items-stretch">
+            <ArchiveSettings />
           </div>
         </div>
       </div>

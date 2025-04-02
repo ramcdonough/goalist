@@ -39,6 +39,7 @@ export type Goal = {
   userId: string;
   goalOrder: number;
   isFocused: boolean;
+  archivedAt: string | null;
 };
 
 // Type for database operations
@@ -57,11 +58,13 @@ type DbGoal = {
 type GoalContextType = {
   goals: Goal[];
   setGoals: React.Dispatch<React.SetStateAction<Goal[]>>;
-  addGoal: (goal: Omit<Goal, 'id' | 'createdAt' | 'updatedAt' | 'userId'>) => Promise<void>;
+  addGoal: (goal: Omit<Goal, 'id' | 'createdAt' | 'updatedAt' | 'userId' | 'archivedAt'>) => Promise<void>;
   updateGoal: (id: string, updatedGoal: Partial<Goal>) => Promise<void>;
   deleteGoal: (id: string) => Promise<void>;
   toggleComplete: (id: string, isComplete: boolean) => Promise<void>;
   clearGoals: () => void;
+  archiveGoal: (id: string) => Promise<void>;
+  unarchiveGoal: (id: string) => Promise<void>;
 };
 
 const GOALS_CACHE_KEY = 'goalist_goals_cache';
@@ -115,7 +118,8 @@ export const GoalProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           updatedAt: goal.updated_at,
           userId: goal.user_id,
           goalOrder: goal.goal_order || 0,
-          isFocused: goal.is_focused
+          isFocused: goal.is_focused,
+          archivedAt: goal.archived_at
         }));
 
         setGoals(formattedGoals);
@@ -126,7 +130,7 @@ export const GoalProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     loadGoals();
   }, [user]);
 
-  const addGoal = async (goal: Omit<Goal, 'id' | 'createdAt' | 'updatedAt' | 'userId'>) => {
+  const addGoal = async (goal: Omit<Goal, 'id' | 'createdAt' | 'updatedAt' | 'userId' | 'archivedAt'>) => {
     if (!user) {
       throw new Error('User must be logged in to add a goal');
     }
@@ -173,7 +177,8 @@ export const GoalProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         updatedAt: data.updated_at,
         userId: data.user_id,
         goalOrder: data.goal_order,
-        isFocused: data.is_focused
+        isFocused: data.is_focused,
+        archivedAt: data.archived_at
       };
 
       const updatedGoals = [...goals, newGoal];
@@ -261,6 +266,70 @@ export const GoalProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     localStorage.removeItem(GOALS_CACHE_KEY);
   };
 
+  const archiveGoal = async (id: string) => {
+    const archivedAt = new Date().toISOString();
+    
+    // Update local state immediately for optimistic update
+    const newGoals = goals.map(goal => 
+      goal.id === id ? { ...goal, archivedAt } : goal
+    );
+    setGoals(newGoals);
+    localStorage.setItem(GOALS_CACHE_KEY, JSON.stringify(newGoals));
+
+    try {
+      // Then update the database
+      const { error } = await supabase
+        .from('goals')
+        .update({ archived_at: archivedAt })
+        .eq('id', id);
+
+      if (error) {
+        // If there's an error, revert the optimistic update
+        console.error('Error archiving goal:', error);
+        const revertedGoals = goals.map(goal => 
+          goal.id === id ? { ...goal } : goal
+        );
+        setGoals(revertedGoals);
+        localStorage.setItem(GOALS_CACHE_KEY, JSON.stringify(revertedGoals));
+        throw error;
+      }
+    } catch (error) {
+      console.error('Error in archiveGoal:', error);
+      throw error;
+    }
+  };
+
+  const unarchiveGoal = async (id: string) => {
+    // Update local state immediately for optimistic update
+    const newGoals = goals.map(goal => 
+      goal.id === id ? { ...goal, archivedAt: null } : goal
+    );
+    setGoals(newGoals);
+    localStorage.setItem(GOALS_CACHE_KEY, JSON.stringify(newGoals));
+
+    try {
+      // Then update the database
+      const { error } = await supabase
+        .from('goals')
+        .update({ archived_at: null })
+        .eq('id', id);
+
+      if (error) {
+        // If there's an error, revert the optimistic update
+        console.error('Error unarchiving goal:', error);
+        const revertedGoals = goals.map(goal => 
+          goal.id === id ? { ...goal } : goal
+        );
+        setGoals(revertedGoals);
+        localStorage.setItem(GOALS_CACHE_KEY, JSON.stringify(revertedGoals));
+        throw error;
+      }
+    } catch (error) {
+      console.error('Error in unarchiveGoal:', error);
+      throw error;
+    }
+  };
+
   return (
     <GoalContext.Provider value={{ 
       goals, 
@@ -269,7 +338,9 @@ export const GoalProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       updateGoal, 
       deleteGoal, 
       toggleComplete, 
-      clearGoals 
+      clearGoals,
+      archiveGoal,
+      unarchiveGoal
     }}>
       {children}
     </GoalContext.Provider>
