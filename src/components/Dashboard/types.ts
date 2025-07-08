@@ -11,11 +11,11 @@ export interface BaseGoalListProps {
   title: string;
   goals: Goal[];
   index?: number;
-  isDraggable?: boolean;
   allowGoalReordering?: boolean;
   onTitleUpdate?: (newTitle: string) => Promise<void>;
   onDelete?: () => Promise<void>;
   onAddGoal?: (title: string) => Promise<void>;
+  onGoalReorder?: (newOrder: Goal[]) => void;
   variant?: 'default' | 'focus';
   titleComponent?: React.ReactNode;
   handleCheckboxChange: (goalId: string, isChecked: boolean) => void;

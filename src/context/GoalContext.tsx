@@ -59,7 +59,7 @@ type GoalContextType = {
   goals: Goal[];
   setGoals: React.Dispatch<React.SetStateAction<Goal[]>>;
   addGoal: (goal: Omit<Goal, 'id' | 'createdAt' | 'updatedAt' | 'userId' | 'archivedAt'>) => Promise<void>;
-  updateGoal: (id: string, updatedGoal: Partial<Goal>) => Promise<void>;
+  updateGoal: (id: string, updatedGoal: Partial<Goal>, skipStateUpdate?: boolean) => Promise<void>;
   deleteGoal: (id: string) => Promise<void>;
   toggleComplete: (id: string, isComplete: boolean) => Promise<void>;
   clearGoals: () => void;
@@ -190,7 +190,7 @@ export const GoalProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
   };
 
-  const updateGoal = async (id: string, updatedGoal: Partial<Goal>) => {
+  const updateGoal = async (id: string, updatedGoal: Partial<Goal>, skipStateUpdate?: boolean) => {
     const snakeCaseGoal = convertToSnakeCase(updatedGoal);
     if (snakeCaseGoal.due_date !== undefined) {
       snakeCaseGoal.due_date = null
@@ -205,11 +205,13 @@ export const GoalProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       throw error;
     }
 
-    const newGoals = goals.map(goal => 
-      goal.id === id ? { ...goal, ...updatedGoal } : goal
-    );
-    setGoals(newGoals);
-    localStorage.setItem(GOALS_CACHE_KEY, JSON.stringify(newGoals));
+    if (!skipStateUpdate) {
+      const newGoals = goals.map(goal => 
+        goal.id === id ? { ...goal, ...updatedGoal } : goal
+      );
+      setGoals(newGoals);
+      localStorage.setItem(GOALS_CACHE_KEY, JSON.stringify(newGoals));
+    }
   };
 
   const deleteGoal = async (id: string) => {

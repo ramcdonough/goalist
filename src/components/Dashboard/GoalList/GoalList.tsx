@@ -8,10 +8,11 @@ interface GoalListProps {
   title: string;
   goals: Goal[];
   index: number;
+  onGoalReorder?: (newOrder: Goal[]) => void;
 }
 
-const GoalList: React.FC<GoalListProps> = ({ goalListId, title, goals, index }) => {
-  const { addGoal, toggleComplete } = useGoals();
+const GoalList: React.FC<GoalListProps> = ({ goalListId, title, goals, index, onGoalReorder }) => {
+  const { addGoal, toggleComplete, updateGoal } = useGoals();
   const { updateGoalList, deleteGoalList } = useGoalLists();
 
   const handleAddGoal = async (newGoalTitle: string) => {
@@ -47,6 +48,22 @@ const GoalList: React.FC<GoalListProps> = ({ goalListId, title, goals, index }) 
     toggleComplete(goalId, isChecked);
   };
 
+  const handleGoalReorder = async (newOrder: Goal[]) => {
+    if (onGoalReorder) {
+      onGoalReorder(newOrder);
+    } else {
+      // Default reordering logic
+      const updates = newOrder.map((goal, index) => ({
+        id: goal.id,
+        goalOrder: index,
+      }));
+      
+      await Promise.all(
+        updates.map(({ id, goalOrder }) => updateGoal(id, { goalOrder }))
+      );
+    }
+  };
+
   return (
     <BaseGoalList
       id={goalListId}
@@ -56,6 +73,7 @@ const GoalList: React.FC<GoalListProps> = ({ goalListId, title, goals, index }) 
       onTitleUpdate={handleUpdateTitle}
       onDelete={handleDelete}
       onAddGoal={handleAddGoal}
+      onGoalReorder={handleGoalReorder}
       handleCheckboxChange={handleCheckboxChange}
       variant="default"
     />

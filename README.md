@@ -28,7 +28,7 @@ Goalist is a goal management application that allows users to create, track, and
 - Tailwind CSS (for styling)
 - DaisyUI (for UI components)
 - React Router (for navigation)
-- @hello-pangea/dnd (for drag-and-drop functionality)
+- Framer Motion (for drag-and-drop functionality and animations)
 
 ## Installation
 

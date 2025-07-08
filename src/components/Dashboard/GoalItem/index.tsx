@@ -1,9 +1,11 @@
-import { Trash, Star, GripVertical, ArrowUpRight } from "lucide-react";
+import { Trash, Star, ArrowUpRight, GripVertical } from "lucide-react";
 import { Goal, useGoals } from "../../../context/GoalContext";
 import GoalModal from "../GoalModal";
 import ConfirmationModal from '../ConfirmationModal';
 import { useState, useEffect } from 'react';
 import { useGoalLists } from "../../../context/GoalListContext";
+import { useSortable } from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 
 export interface GoalItemProps {
   goal: Goal;
@@ -23,6 +25,22 @@ const GoalItem: React.FC<GoalItemProps> = ({
   
   const isFocusVariant = variant === 'focus';
   const originList = isFocusVariant ? goalLists.find(list => list.id === goal.goalListId) : null;
+
+  // dnd-kit sortable functionality
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: goal.id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  };
 
   // Update local state when goal.completedAt changes
   useEffect(() => {
@@ -66,10 +84,20 @@ const GoalItem: React.FC<GoalItemProps> = ({
 
   return (
     <>
-      <div className={containerClasses}>
-        <div className="opacity-0 group-hover:opacity-100 transition-opacity cursor-grab">
-          <GripVertical size={16} className={isFocusVariant ? "text-blue-500/50" : "text-gray-400"} />
+      <div 
+        ref={setNodeRef}
+        style={style}
+        className={`${containerClasses} ${isDragging ? 'z-50' : ''}`}
+      >
+        {/* Drag handle */}
+        <div
+          {...attributes}
+          {...listeners}
+          className="cursor-grab active:cursor-grabbing text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+        >
+          <GripVertical size={16} />
         </div>
+        
         <input
           type="checkbox"
           checked={isChecked}

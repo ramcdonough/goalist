@@ -1,10 +1,23 @@
-import React, { useState } from 'react';
-import { Goal } from '../../../context/GoalContext';
-import { Trash, Plus, Edit2, Save } from 'lucide-react';
+import React, { useState, useMemo } from 'react';
+import { Trash, Plus, Save } from 'lucide-react';
 import { useUserSettings } from '../../../context/UserContext';
 import GoalItem from '../GoalItem/index';
 import ConfirmationModal from '../ConfirmationModal';
-import { Droppable, Draggable } from '@hello-pangea/dnd';
+import { 
+  DndContext, 
+  rectIntersection, 
+  KeyboardSensor, 
+  PointerSensor, 
+  useSensor, 
+  useSensors,
+  DragEndEvent,
+} from '@dnd-kit/core';
+import { 
+  arrayMove, 
+  SortableContext, 
+  sortableKeyboardCoordinates,
+  verticalListSortingStrategy
+} from '@dnd-kit/sortable';
 import { BaseGoalListProps } from '../types';
 
 export type GoalListProps = BaseGoalListProps;
@@ -14,7 +27,6 @@ const BaseGoalList: React.FC<BaseGoalListProps> = ({
   title,
   goals,
   index = 0,
-  isDraggable = true,
   allowGoalReordering = true,
   onTitleUpdate,
   onDelete,
@@ -22,6 +34,7 @@ const BaseGoalList: React.FC<BaseGoalListProps> = ({
   variant = 'default',
   titleComponent,
   handleCheckboxChange,
+  onGoalReorder,
 }) => {
   const [newGoalTitle, setNewGoalTitle] = useState('');
   const [isEditing, setIsEditing] = useState(false);
@@ -30,6 +43,32 @@ const BaseGoalList: React.FC<BaseGoalListProps> = ({
   const [isDeleteModalOpen, setDeleteModalOpen] = useState(false);
 
   const isFocusVariant = variant === 'focus';
+
+  // Configure sensors for dnd-kit
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 8,
+      },
+    }),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
+
+  // Memoize sorted goals to prevent unnecessary re-renders
+  const sortedGoals = useMemo(() => {
+    return goals
+      .filter(goal => !goal.archivedAt)
+      .sort((a, b) => {
+        // First sort by completion status
+        if (!!a.completedAt !== !!b.completedAt) {
+          return !!a.completedAt ? 1 : -1; // Completed goals go to the bottom
+        }
+        // Then sort by goal order
+        return (a.goalOrder || 0) - (b.goalOrder || 0);
+      });
+  }, [goals]);
 
   const handleAddGoal = async () => {
     if (newGoalTitle.trim() === '' || !onAddGoal) return;
@@ -47,6 +86,22 @@ const BaseGoalList: React.FC<BaseGoalListProps> = ({
     if (onDelete) {
       await onDelete();
       setDeleteModalOpen(false);
+    }
+  };
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+
+    if (active.id !== over?.id) {
+      const oldIndex = sortedGoals.findIndex(goal => goal.id === active.id);
+      const newIndex = sortedGoals.findIndex(goal => goal.id === over?.id);
+
+      if (oldIndex !== -1 && newIndex !== -1) {
+        const newOrder = arrayMove(sortedGoals, oldIndex, newIndex);
+        if (onGoalReorder) {
+          onGoalReorder(newOrder);
+        }
+      }
     }
   };
 
@@ -106,58 +161,41 @@ const BaseGoalList: React.FC<BaseGoalListProps> = ({
     </div>
   );
 
-  const goalsList = (
-    <Droppable droppableId={id} type="goal">
-      {(provided) => (
-        <div
-          ref={provided.innerRef}
-          {...provided.droppableProps}
-          className="space-y-1"
-          id="goal-container"
-        >
-          {goals
-            .filter(goal => !goal.archivedAt)
-            .sort((a, b) => {
-              // First sort by completion status
-              if (!!a.completedAt !== !!b.completedAt) {
-                return !!a.completedAt ? 1 : -1; // Completed goals go to the bottom
-              }
-              // Then sort by goal order
-              return (a.goalOrder || 0) - (b.goalOrder || 0);
-            })
-            .map((goal, index) => (
-              allowGoalReordering ? (
-                <Draggable key={goal.id} draggableId={goal.id} index={index}>
-                  {(provided, snapshot) => (
-                    <div
-                      ref={provided.innerRef}
-                      {...provided.draggableProps}
-                      className={`${snapshot.isDragging ? 'opacity-50' : ''}`}
-                    >
-                      <div {...provided.dragHandleProps}>
-                        <GoalItem
-                          goal={goal}
-                          handleCheckboxChange={handleCheckboxChange}
-                          variant={variant}
-                        />
-                      </div>
-                    </div>
-                  )}
-                </Draggable>
-              ) : (
-                <div key={goal.id}>
-                  <GoalItem
-                    goal={goal}
-                    handleCheckboxChange={handleCheckboxChange}
-                    variant={variant}
-                  />
-                </div>
-              )
-            ))}
-          {provided.placeholder}
+  const goalsList = allowGoalReordering ? (
+    <DndContext
+      sensors={sensors}
+      collisionDetection={rectIntersection}
+      onDragEnd={handleDragEnd}
+    >
+      <SortableContext
+        items={sortedGoals.map(goal => goal.id)}
+        strategy={verticalListSortingStrategy}
+      >
+        <div className="space-y-1" id="goal-container">
+          {sortedGoals.map((goal) => (
+            <div key={goal.id}>
+              <GoalItem
+                goal={goal}
+                handleCheckboxChange={handleCheckboxChange}
+                variant={variant}
+              />
+            </div>
+          ))}
         </div>
-      )}
-    </Droppable>
+      </SortableContext>
+    </DndContext>
+  ) : (
+    <div className="space-y-1" id="goal-container">
+      {sortedGoals.map((goal) => (
+        <div key={goal.id}>
+          <GoalItem
+            goal={goal}
+            handleCheckboxChange={handleCheckboxChange}
+            variant={variant}
+          />
+        </div>
+      ))}
+    </div>
   );
 
   // Different container styles based on variant
@@ -204,23 +242,7 @@ const BaseGoalList: React.FC<BaseGoalListProps> = ({
     </div>
   );
 
-  if (!isDraggable) {
-    return content;
-  }
-
-  return (
-    <Draggable draggableId={id} index={index}>
-      {(provided, snapshot) => (
-        <div
-          ref={provided.innerRef}
-          {...provided.draggableProps}
-          {...provided.dragHandleProps}
-        >
-          {content}
-        </div>
-      )}
-    </Draggable>
-  );
+  return content;
 };
 
 export default BaseGoalList; 

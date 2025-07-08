@@ -20,7 +20,7 @@ type GoalListOrder = {
 type GoalListContextType = {
   goalLists: GoalList[];
   addGoalList: (goalList: Omit<GoalList, 'id' | 'createdAt' | 'updatedAt' | 'userId' | 'order'>) => Promise<void>;
-  updateGoalList: (id: string, updatedGoalList: Partial<GoalList>) => Promise<void>;
+  updateGoalList: (id: string, updatedGoalList: Partial<GoalList>, skipStateUpdate?: boolean) => Promise<void>;
   deleteGoalList: (id: string) => Promise<void>;
   clearGoalLists: () => void;
   updateGoalListOrder: (updates: GoalListOrder[]) => Promise<void>;
@@ -131,7 +131,7 @@ export const GoalListProvider: React.FC<{ children: ReactNode }> = ({ children }
     }
   };
 
-  const updateGoalList = async (id: string, updatedGoalList: Partial<GoalList>) => {
+  const updateGoalList = async (id: string, updatedGoalList: Partial<GoalList>, skipStateUpdate?: boolean) => {
     // Convert fields to snake_case for database
     const dbFields = {
       ...(updatedGoalList.title !== undefined && { title: updatedGoalList.title }),
@@ -152,8 +152,10 @@ export const GoalListProvider: React.FC<{ children: ReactNode }> = ({ children }
     const newGoalLists = goalLists.map(list => 
       list.id === id ? { ...list, ...updatedGoalList } : list
     );
-    setGoalLists(newGoalLists);
-    localStorage.setItem(GOAL_LISTS_CACHE_KEY, JSON.stringify(newGoalLists));
+    if (!skipStateUpdate) {
+      setGoalLists(newGoalLists);
+      localStorage.setItem(GOAL_LISTS_CACHE_KEY, JSON.stringify(newGoalLists));
+    }
   };
 
   const updateGoalListOrder = async (updates: GoalListOrder[]) => {
