@@ -6,8 +6,8 @@ import FocusListTitle from './FocusListTitle';
 const FocusList = () => {
   const { goals, updateGoal, toggleComplete } = useGoals();
 
-  // Filter goals that are marked as focus
-  const focusedGoals = goals.filter(goal => goal.isFocused);
+  // Filter goals that are marked as focus and not archived
+  const focusedGoals = goals.filter(goal => goal.isFocused && !goal.archivedAt);
 
   const handleGoalReorder = async (newOrder: any[]) => {
     try {

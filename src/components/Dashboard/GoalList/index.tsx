@@ -144,7 +144,7 @@ const BaseGoalList: React.FC<BaseGoalListProps> = ({
             <h2 className="text-xl font-semibold text-text-light dark:text-text-dark flex items-center">
               <span className="mr-2 pl-2" onClick={() => onTitleUpdate && setIsEditing(true)}>{title}</span>
               <span className="text-sm font-normal text-text-light/60 dark:text-text-dark/60">
-                ({goals.length})
+                ({goals.filter(goal => !goal.archivedAt).length})
               </span>
             </h2>
           </div>
@@ -221,7 +221,7 @@ const BaseGoalList: React.FC<BaseGoalListProps> = ({
                 }
               }}
               placeholder="Add new goal..."
-              className="flex-1 bg-surface-light dark:bg-surface rounded-l-lg px-4 py-2 text-text-light dark:text-text-dark placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none"
+              className="flex-1 bg-surface-dark/10 dark:bg-surface rounded-l-lg px-4 py-2 text-text-light dark:text-text-dark placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none"
             />
             <button
               onClick={handleAddGoal}

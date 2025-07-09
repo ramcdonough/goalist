@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { UserCircle, ListTodo } from 'lucide-react';
+import { UserCircle, Archive, Settings, LogOut } from 'lucide-react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useGoals } from '../../context/GoalContext';
+import ArchiveModal from './ArchiveModal';
 import '../../styles/navbar.css';
 
 const Navbar: React.FC = () => {
@@ -10,6 +11,7 @@ const Navbar: React.FC = () => {
   const { clearGoals } = useGoals();
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
+  const [archiveModalOpen, setArchiveModalOpen] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -27,6 +29,11 @@ const Navbar: React.FC = () => {
     } catch (error) {
       console.error('Error signing out:', error);
     }
+  };
+
+  const toggleArchiveModal = () => {
+    setArchiveModalOpen(!archiveModalOpen);
+    setDropdownOpen(false);
   };
 
   const toggleDropdown = () => {
@@ -52,11 +59,10 @@ const Navbar: React.FC = () => {
 
   return (
     <nav className={`sticky-navbar ${isScrolled ? 'scrolled' : ''} shadow-md`}>
-      <div className="max-w-auto mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="max-w-auto mx-auto px-4 sm:px-6 md:px-8">
         <div className="flex justify-between h-16">
           <div className="flex items-center space-x-12">
             <Link to="/" className="flex items-center text-2xl font-bold text-text-light dark:text-text-dark gap-2">
-              <ListTodo size={22} strokeWidth={2}/>
               <img src="/logo_goalist.png" alt="Goalist" className="h-6 md:h-7 w-auto"/>
             </Link>
             <div className="hidden md:flex items-center space-x-4">
@@ -107,14 +113,23 @@ const Navbar: React.FC = () => {
                     )}
                     <Link
                       to="/settings"
-                      className="block px-4 py-2 text-sm text-text-light dark:text-text-dark hover:bg-primary-light/5 md:hidden"
+                      className="block w-full text-left px-4 py-2 text-sm text-text-light dark:text-text-dark hover:bg-primary-light/5 flex items-center md:hidden"
                     >
+                      <Settings size={16} className="mr-2" />
                       Settings
                     </Link>
                     <button
-                      onClick={handleSignOut}
-                      className="block w-full text-left px-4 py-2 text-sm text-text-light dark:text-text-dark hover:bg-primary-light/5"
+                      onClick={toggleArchiveModal}
+                      className="block w-full text-left px-4 py-2 text-sm text-text-light dark:text-text-dark hover:bg-primary-light/5 flex items-center"
                     >
+                      <Archive size={16} className="mr-2" />
+                      Archive
+                    </button>
+                    <button
+                      onClick={handleSignOut}
+                      className="block w-full text-left px-4 py-2 text-sm text-text-light dark:text-text-dark hover:bg-primary-light/5 flex items-center"
+                    >
+                      <LogOut size={16} className="mr-2" />
                       Sign Out
                     </button>
                   </div>
@@ -124,6 +139,8 @@ const Navbar: React.FC = () => {
           </div>
         </div>
       </div>
+      
+      <ArchiveModal isOpen={archiveModalOpen} onClose={toggleArchiveModal} />
     </nav>
   );
 };

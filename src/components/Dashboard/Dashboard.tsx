@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useMemo } from "react";
+import React, { useState, useCallback, useMemo, useEffect } from "react";
 import { useGoals, Goal } from "../../context/GoalContext";
 import {
     useGoalLists,
@@ -10,18 +10,16 @@ import DraggableColumns, {
     ColumnData,
     ListWithGoals,
 } from "./DraggableColumns";
-import AddListForm from "./AddListForm";
+import FloatingAddListButton from "./FloatingAddListButton";
 import FocusList from "./GoalList/FocusList";
-import FocusProgress from "./Progress/FocusProgress";
 
 const Dashboard: React.FC = () => {
     const { goals, updateGoal, setGoals } = useGoals();
     const { goalLists, updateGoalList, setGoalLists } = useGoalLists();
     const { columnPreference } = useUserSettings();
-    const [isProgressOpen, setIsProgressOpen] = useState(
-        () => localStorage.getItem("progressOpen") === "true"
-    );
+
     const [error, setError] = useState<string | null>(null);
+    const [isLoading, setIsLoading] = useState(true);
 
     const updateColumnsFromGoalLists = useCallback(
         (currentGoalLists: GoalListType[], currentGoals: Goal[]) => {
@@ -201,17 +199,14 @@ const Dashboard: React.FC = () => {
         }
     }, [goalLists, setGoalLists, updateGoalList]);
 
+    useEffect(() => {
+        setIsLoading(false);
+    }, []);
+
     return (
-        <div className="min-h-screen px-2 md:p-8 md:pt-10">
+        <div className="min-h-screen px-2">
             <div className="max-w-7xl mx-auto">
-                <div className="flex flex-row justify-between items-stretch bg-gradient-to-r from-primary-light to-primary-dark dark:from-primary-dark/90 dark:to-indigo-800/90 p-3 md:p-4 gap-4 rounded-lg shadow-lg border border-primary-light/20 dark:border-indigo-500/20 mb-4 transition-all">
-                    <div className="flex-grow">
-                        <FocusProgress />
-                    </div>
-                    <div className="flex-shrink-0 flex items-center">
-                        <AddListForm onError={setError} columns={columns} />
-                    </div>
-                </div>
+                
 
                 {error && (
                     <div className="alert alert-error shadow-lg md:mx-12">
@@ -219,7 +214,7 @@ const Dashboard: React.FC = () => {
                         <span>{error}</span>
                     </div>
                 )}
-                {goalLists.length === 0 && goals.length === 0 && (
+                {goalLists.length === 0 && goals.length === 0 && !isLoading && (
                     <div className="flex flex-col items-center justify-center md:min-h-[60vh] text-center px-4">
                         <div className="bg-surface-light dark:bg-surface-dark rounded-lg p-8 border border-blue-100 dark:border-gray-800 max-w-md">
                             <h2 className="text-2xl text-text-light dark:text-text-dark font-semibold mb-3">Welcome to Your Dashboard</h2>
@@ -239,6 +234,8 @@ const Dashboard: React.FC = () => {
                         onGoalReorder={handleGoalReorder}
                     />
                 </div>
+
+                <FloatingAddListButton onError={setError} columns={columns} />
 
             </div>
         </div>

@@ -4,12 +4,12 @@ import { useGoalLists } from '../../context/GoalListContext';
 import { useUserSettings } from '../../context/UserContext';
 import { ColumnData } from './DraggableColumns';
 
-interface AddListFormProps {
+interface FloatingAddListButtonProps {
   onError: (error: string) => void;
   columns: ColumnData;
 }
 
-const AddListForm: React.FC<AddListFormProps> = ({ onError, columns }) => {
+const FloatingAddListButton: React.FC<FloatingAddListButtonProps> = ({ onError, columns }) => {
   const [newListTitle, setNewListTitle] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const { addGoalList } = useGoalLists();
@@ -53,12 +53,10 @@ const AddListForm: React.FC<AddListFormProps> = ({ onError, columns }) => {
     <>
       <button
         onClick={openModal}
-        className="relative h-12 px-5 bg-blue-600 dark:bg-blue-800 text-text-dark dark:text-text-dark font-medium rounded-lg flex items-center justify-center gap-2 shadow-md hover:shadow-lg transform transition-all duration-200 hover:translate-y-[-1px] active:translate-y-[1px]"
+        className="fixed bottom-4 right-4 p-3 bg-primary-light dark:bg-primary-dark text-white rounded-full shadow-lg z-10 flex items-center justify-center hover:shadow-xl transform transition-all duration-200 hover:scale-110 active:scale-95"
+        title="Add New List"
       >
-        <span className="flex items-center justify-center w-5 h-5">
-          <Plus size={18} strokeWidth={3} className="text-white" />
-        </span>
-        <span className="whitespace-nowrap">Add List</span>
+        <Plus size={24} strokeWidth={3} />
       </button>
 
       {/* Add List Modal */}
@@ -116,4 +114,4 @@ const AddListForm: React.FC<AddListFormProps> = ({ onError, columns }) => {
   );
 };
 
-export default AddListForm; 
+export default FloatingAddListButton; 

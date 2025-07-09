@@ -98,7 +98,7 @@ const DroppableColumn: React.FC<{
   return (
     <div
       ref={setNodeRef}
-      className={`space-y-4 min-h-[200px] p-2 rounded-lg transition-colors ${
+      className={`space-y-4 min-h-[200px] rounded-lg transition-colors ${
         isOver ? 'bg-blue-50 dark:bg-blue-900/20 border-2 border-dashed border-blue-300 dark:border-blue-600' : ''
       }`}
     >

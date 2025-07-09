@@ -1,4 +1,4 @@
-import React from 'react';
+  import React from 'react';
 import './App.css';
 import { GoalProvider } from './context/GoalContext';
 import { GoalListProvider } from './context/GoalListContext';
@@ -10,7 +10,6 @@ import { BrowserRouter as Router, Route, Routes, Navigate, useLocation } from 'r
 import Settings from './components/Settings/Settings';
 import Auth from './components/Auth/Auth';
 import { useAuth } from './context/AuthContext';
-import ArchivedGoals from './components/Archive/ArchivedGoals';
 
 // Protected Route wrapper component
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -32,8 +31,9 @@ const ProtectedRouteWrapper: React.FC<{ element: React.ReactNode }> = ({ element
   <ProtectedRoute>
     <>
       <Navbar />
-      {element}
-      <ArchivedGoals />
+      <div className="pt-10">
+        {element}
+      </div>
     </>
   </ProtectedRoute>
 );
